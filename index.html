@@ -302,6 +302,16 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
     <button class="btn" id="navNext">Siguiente</button>
   </div></div>
 
+  <!-- PREGUNTAS DE LA IA -->
+  <section class="screen" id="s-gaps">
+    <div class="eyebrow">Casi listo</div>
+    <h2 class="title" style="font-size:30px">Me faltan <em>unos datos</em></h2>
+    <p class="sub">Con esto tu anuncio y tu agente venden mucho mejor. Contesta lo que sepas; lo demás puedes dejarlo vacío.</p>
+    <div class="card" id="gapBox"></div>
+    <button class="btn full" id="gapGo" style="margin-top:16px">Armar mi campaña ✦</button>
+    <button class="skip" id="gapSkip" style="display:block;margin:8px auto 0">Omitir y armar así</button>
+  </section>
+
   <!-- CARGANDO -->
   <section class="screen" id="s-loading">
     <div class="loader">
@@ -377,7 +387,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "2.0";
+const VERSION = "3.0";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -560,30 +570,57 @@ function bindVoice(btn, setLabel, onText){
 }
 
 /* ---------------- Preguntas ---------------- */
-const TIPOS=[["Producto","📦"],["Servicio","🤝"],["Evento","🎟️"],["Reto de varios días","🔥"],["Oportunidad de negocio","🚀"]];
+const TIPOS=[["Producto","📦"],["Servicio","🤝"],["Evento","🎟️"],["Reto","🔥"],["Oportunidad de negocio","🚀"],["Otro","✨"]];
 const OBJ=[["Que me escriban por WhatsApp","💬"],["Agendar citas","📅"],["Registros a mi evento","🎟️"],["Vender en línea (tengo página web)","🛒"]];
+const KINDS={auto:"Detectar",producto:"Producto",etiqueta:"Etiqueta",flyer:"Flyer",persona:"Persona",lugar:"Lugar",doc:"Documento"};
+const KIND_CYCLE=["producto","etiqueta","flyer","persona","lugar"];
+/* Datos clave por tipo: [campo, etiqueta, ejemplo]  ·  fotos: [tipo, etiqueta, tip] */
+const DET={
+  "Producto":{fields:[["precio","Precio y presentaciones","Ej. $499 MXN la caja de 30 sobres · 2 por $899"],["beneficios","¿Para qué sirve? Beneficios principales","Ej. Apoya la salud del hígado, mejora la digestión y la energía"],["compra","¿Cómo se compra y se entrega?","Ej. Envío a todo México en 3 días · transferencia, tarjeta o efectivo"],["extra","Ingredientes, garantía u otro dato que ayude a vender","Ej. 100% herbal · garantía de satisfacción"]],
+    photos:[["producto","📦 Foto de tu producto","Fondo liso y buena luz: así sale perfecto"],["etiqueta","🏷️ Foto de la etiqueta o ficha","Para que la IA lea ingredientes y datos"]]},
+  "Servicio":{fields:[["detalle","¿En qué consiste y cuánto dura?","Ej. Escaneo de bienestar de 30 minutos con reporte personalizado"],["precio","Precio","Ej. $350 MXN · primera sesión gratis"],["horario","Horarios y lugar","Ej. Lunes a sábado de 10 a 7 · Plaza Level, Providencia"],["agenda","¿Cómo se agenda?","Ej. Por WhatsApp, eligen día y hora"]],
+    photos:[["persona","🙋 Foto tuya","Una cara genera confianza"],["lugar","🏢 Foto del lugar","Si atiendes en un espacio"]]},
+  "Evento":{fields:[["fecha","Fecha y hora","Ej. Sábado 6 de diciembre, 10 am"],["lugar","Lugar (dirección o link de Google Maps)","Ej. Hotel Hilton Guadalajara, salón B"],["precio","Costo","Ej. Gratis con registro · $299 preventa"],["agenda","¿Qué van a vivir o aprender?","Ej. Longevidad, IA aplicada a negocios y networking"],["registro","¿Cómo se registran? ¿Hay cupo?","Ej. Por WhatsApp · cupo de 80 personas"]],
+    photos:[["flyer","🖼️ Flyer del evento","Si ya lo tienes, la IA lo mejora"],["persona","🎤 Fotos de ponentes o personas","Rostros reales venden más"]]},
+  "Reto":{fields:[["duracion","Duración y fecha de inicio","Ej. 21 días, empieza el lunes 1 de diciembre"],["precio","Precio","Ej. $499 MXN con producto incluido"],["incluye","¿Qué incluye?","Ej. Grupo de WhatsApp, guía diaria, 2 sesiones en vivo"],["registro","¿Cómo se unen?","Ej. Escribiendo RETO por WhatsApp"]],
+    photos:[["persona","🙋 Foto tuya o de participantes",""],["flyer","🖼️ Flyer del reto","Si ya lo tienes"]]},
+  "Oportunidad de negocio":{fields:[["historia","Tu historia en pocas líneas","Ej. Era empleado, hoy lidero un equipo de 200 personas"],["invitacion","¿A qué los invitas?","Ej. Presentación por Zoom el martes 8 pm"],["registro","¿Cómo se registran?","Ej. Escribiendo QUIERO por WhatsApp"]],
+    photos:[["persona","🙋 Fotos tuyas o de tu equipo",""],["flyer","🖼️ Flyer de la presentación","Si ya lo tienes"]]},
+  "Otro":{fields:[["precio","Precio u oferta (si aplica)",""],["fecha","Fecha, horario o lugar (si aplica)",""],["compra","¿Cómo te contactan o te compran?",""]],
+    photos:[["auto","📷 Fotos que ayuden","Producto, lugar, personas o flyer"]]}
+};
+const detOf = t => DET[t]||DET["Otro"];
 const STEPS=[
-  {id:"tipo", q:"¿Qué vas a promocionar?", help:"Elige el que más se parezca.", type:"chips", opts:TIPOS},
-  {id:"descripcion", q:"Cuéntame de qué se trata", help:"Qué es, qué incluye, para quién es y qué lo hace diferente. También puedes adjuntar fotos del producto, tu flyer o un PDF con la información.", type:"text", voice:true, attach:true,
-    ph:a=>({"Producto":"Ej. Creatina con HMB micronizada 500 mesh, para personas que entrenan y quieren recuperarse mejor…","Servicio":"Ej. Escaneo de bienestar de 30 minutos donde te muestro cómo está tu cuerpo…","Evento":"Ej. Conferencia presencial sobre longevidad, IA y negocios digitales…","Reto de varios días":"Ej. Reto de 21 días para mejorar energía y hábitos, con grupo de WhatsApp…","Oportunidad de negocio":"Ej. Invito a emprendedores a conocer un modelo de negocio de salud con herramientas digitales…"}[a.tipo]||"Descríbelo con tus palabras…")},
-  {id:"oferta", q:a=>a.tipo==="Evento"?"Fecha, hora, lugar y costo":"¿Precio, oferta o fecha?", help:"Lo que la gente necesita saber para decidir. Si no aplica, omite.", type:"text", voice:true, optional:true,
-    ph:a=>a.tipo==="Evento"?"Ej. Sábado 6 de diciembre, 10 am, Hotel X en Guadalajara. Entrada gratuita con registro.":"Ej. $650 MXN, promoción 2x1 hasta el domingo…"},
+  {id:"tipo", q:"¿Qué vas a promocionar?", help:"Elige el que más se parezca. Si no está, toca Otro y me lo explicas.", type:"chips", opts:TIPOS},
+  {id:"descripcion", q:a=>a.tipo==="Otro"?"Explícame qué quieres promocionar":"Cuéntame de qué se trata", help:"Con tus palabras, como si se lo explicaras a un amigo. Puedes hablar. También puedes adjuntar fotos, tu flyer o un PDF.", type:"text", voice:true, attach:true,
+    ph:a=>({"Producto":"Ej. MUNO T, una infusión herbal de Celion que apoya la salud del hígado y la digestión…","Servicio":"Ej. Escaneo de bienestar de 30 minutos donde te muestro cómo está tu cuerpo…","Evento":"Ej. Conferencia presencial sobre longevidad, IA y negocios digitales…","Reto":"Ej. Reto de 21 días para mejorar energía y hábitos, con grupo de WhatsApp…","Oportunidad de negocio":"Ej. Invito a emprendedores a conocer un modelo de negocio de salud con herramientas digitales…"}[a.tipo]||"Ej. Quiero promocionar… para… y que la gente…")},
+  {id:"detalles", q:a=>a.tipo==="Evento"?"Los datos de tu evento":a.tipo==="Producto"?"Los datos de tu producto":"Los datos clave", help:"Llena lo que tengas; lo que no, déjalo vacío. Entre más me des, mejor vende tu anuncio y tu agente.", type:"details", optional:true},
   {id:"objetivo", q:"¿Qué quieres que haga la gente?", help:"Esto define cómo se configura la campaña en Meta.", type:"chips", opts:OBJ},
   {id:"ubicacion", q:"¿Dónde quieres anunciarte?", help:"Ciudad, zona o colonias. Si es presencial, piensa en qué tan lejos viajaría tu cliente.", type:"text", voice:true, short:true, chips:["Todo México","Mi ciudad y alrededores (15 km)"], ph:()=>"Ej. Guadalajara y Zapopan"},
   {id:"publico", q:"¿A quién quieres llegar?", help:"Edad, intereses, situación. Si no sabes, deja que la IA decida.", type:"text", voice:true, optional:true, chips:["No sé, decide tú"], ph:()=>"Ej. Mujeres de 30 a 55 que cuidan su salud y la de su familia"},
   {id:"presupuesto", q:"¿Cuánto vas a invertir?", help:"Por día. Con poco presupuesto también se puede, solo hay que enfocarlo bien.", type:"budget"},
-  {id:"estilo", q:"¿Cómo quieres que se vean?", help:"Sube anuncios o diseños que te gusten como referencia. La IA toma el estilo, no copia el contenido.", type:"style", optional:true},
+  {id:"estilo", q:"¿Cómo quieres que se vean?", help:"Opcional: sube anuncios o diseños que te gusten. La IA toma el estilo y los ángulos, no copia el contenido.", type:"style", optional:true},
   {id:"marca", q:"¿Cómo te presentas?", help:"Tu nombre, tu compañía o marcas (se mencionan libremente) y tu WhatsApp.", type:"brand"},
+  {id:"agente", q:"Tu agente de WhatsApp", help:"Para que atienda y venda como tú. Todo es opcional.", type:"agentq", optional:true},
   {id:"tono", q:"¿Con qué tono hablamos?", help:"Puedes elegir más de uno.", type:"chips", multi:true, optional:true, opts:[["Cercano","😊"],["Profesional","💼"],["Energético","⚡"],["Inspirador","✨"],["Directo","🎯"]]}
 ];
 const val = v => typeof v==="function" ? v(state.answers) : v;
-const matImages = () => state.files.material.filter(f=>/^image\//.test(f.type));
-const exactOn = () => state.exact!=null ? state.exact : (state.answers.tipo==="Producto" && matImages().length>0);
+const imgFiles = () => state.files.material.filter(f=>/^image\//.test(f.type));
+const hasProductPhoto = () => imgFiles().some(f=>f.kind==="producto");
+const exactOn = () => state.exact===true && hasProductPhoto();
+const COUNTRY={MXN:"MX",USD:"US",COP:"CO",PEN:"PE",CLP:"CL",GTQ:"GT"};
+function libraryURL(q){ const cur=(state.answers.presupuesto||{}).moneda||"MXN"; return `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${COUNTRY[cur]||"MX"}&media_type=all&search_type=keyword_unordered&q=${encodeURIComponent(q)}`; }
+function guessKeyword(){ const d=(state.answers.detalles||{}); const src=(state.answers.descripcion||"").replace(/^(ej\.|es|un|una|el|la|mi|quiero promocionar)\s+/i,""); return (src.split(/[,.;\n]/)[0]||"").split(/\s+/).slice(0,3).join(" ") || d.beneficios || ""; }
 
 function renderProg(){ $("#prog").innerHTML = STEPS.map((_,i)=>`<i class="${i<=state.step?"done":""}"></i>`).join(""); }
 function fileList(arr, key){
   return arr.map((f,i)=>{ const isImg=/^image\//.test(f.type||"image/"); const b=f.blob||f;
-    return `<div class="fileitem"><div class="pv" style="${isImg?`background-image:url(${urlFor(b)})`:""}">${isImg?"":"📄"}</div><div class="nm">${esc(f.name||"Imagen")}</div><button data-rm="${key}:${i}">✕</button></div>`; }).join("");
+    const tag = key==="m" ? (isImg?`<button class="chip" style="padding:5px 10px;font-size:12px" data-kind="${i}">${KINDS[f.kind||"auto"]}</button>`:`<span class="note" style="margin:0">Documento</span>`) : "";
+    return `<div class="fileitem"><div class="pv" style="${isImg?`background-image:url(${urlFor(b)})`:""}">${isImg?"":"📄"}</div><div class="nm">${esc(f.name||"Imagen")}</div>${tag}<button data-rm="${key}:${i}">✕</button></div>`; }).join("");
+}
+function addMaterial(files, kind){
+  for(const f of files){ if(state.files.material.length>=8){ toast("Máximo 8 archivos"); break; } if(f.size>15e6){ toast(f.name+" pesa más de 15 MB"); continue; }
+    const isImg=/^image\//.test(f.type||""); state.files.material.push({id:uid(),name:f.name,type:f.type||"application/octet-stream",blob:f,kind:isImg?(kind||"auto"):"doc"}); }
 }
 function renderStep(){
   const s=STEPS[state.step], a=state.answers; renderProg();
@@ -595,20 +632,32 @@ function renderStep(){
     if(s.chips) h+=`<div class="chips" style="margin-bottom:12px">`+s.chips.map(t=>`<button class="chip ${a[s.id]===t?"on":""}" data-fill="${esc(t)}">${esc(t)}</button>`).join("")+`</div>`;
     h+= s.short ? `<input type="text" id="inp" value="${esc(a[s.id]||"")}" placeholder="${esc(val(s.ph))}">` : `<textarea id="inp" placeholder="${esc(val(s.ph))}">${esc(a[s.id]||"")}</textarea>`;
     if(s.voice) h+=`<div class="mic">${micButton("mic")}<span class="miclabel" id="miclabel">Toca y habla</span></div>`;
-    if(s.attach) h+=`<label class="attach" for="att">📎 Adjuntar fotos, flyer o documentos</label><input type="file" id="att" accept="image/png,image/jpeg,image/webp,application/pdf,text/plain" multiple class="hidden"><div class="files" id="attList"></div><p class="note">Fotos del producto, flyer del evento o PDF con información. Máximo 6 archivos.</p>`;
+    if(s.attach) h+=`<label class="attach" for="att">📎 Adjuntar fotos, flyer o documentos</label><input type="file" id="att" accept="image/png,image/jpeg,image/webp,application/pdf,text/plain" multiple class="hidden"><div class="files" id="attList"></div>`;
+  } else if(s.type==="details"){
+    const d=detOf(a.tipo), v=a.detalles||{};
+    h+=d.photos.map(([k,l,tip],j)=>`<label class="drop" for="ph${j}" style="margin-bottom:10px;padding:16px"><b>${l}</b>${esc(tip)}</label><input type="file" id="ph${j}" data-pk="${k}" accept="image/png,image/jpeg,image/webp" multiple class="hidden">`).join("")+`<div class="files" id="attList" style="margin-bottom:8px"></div>`;
+    h+=d.fields.map(([k,l,ph])=>`<label class="small">${esc(l)}</label><input type="text" data-det="${k}" value="${esc(v[k]||"")}" placeholder="${esc(ph)}">`).join("");
   } else if(s.type==="budget"){
     const b=a.presupuesto||{diario:150,dias:7,moneda:"MXN"};
     h+=`<label class="small" style="margin-top:0">Por día</label><div class="chips" id="bd">`+[100,150,200,300].map(n=>`<button class="chip ${b.diario==n?"on":""}" data-n="${n}">$${n}</button>`).join("")+`</div>
       <label class="small">O escribe otra cantidad</label><div style="display:flex;gap:8px"><input type="number" id="bdIn" inputmode="numeric" value="${b.diario}"><select id="cur" style="width:110px">${["MXN","USD","COP","PEN","CLP","GTQ"].map(c=>`<option ${b.moneda===c?"selected":""}>${c}</option>`).join("")}</select></div>
       <label class="small">¿Cuántos días?</label><div class="chips" id="dd">`+[5,7,10,14,30].map(n=>`<button class="chip ${b.dias==n?"on":""}" data-n="${n}">${n} días</button>`).join("")+`</div><p class="note" id="btot"></p>`;
   } else if(s.type==="style"){
-    h+=`<label class="drop" for="rf"><b>✦ Referencias de estilo</b>Anuncios o diseños que te gustan · hasta 3</label><input type="file" id="rf" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="files" id="refList"></div>`;
-    if(matImages().length) h+=`<div class="card" style="margin-top:16px"><label class="switch"><input type="checkbox" id="exact" ${exactOn()?"checked":""}><span class="tg"></span><span><b>Mantener mi producto exacto</b><br><span class="note" style="margin:0">La IA crea el fondo y la escena, y la app coloca tu foto real encima: la etiqueta queda idéntica. Recomendado para productos. Funciona mejor con foto en fondo liso.</span></span></label></div>`;
+    h+=`<label class="drop" for="rf"><b>✦ Referencias</b>Anuncios o diseños que te gustan · hasta 3</label><input type="file" id="rf" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="files" id="refList"></div>
+      <details class="card" style="margin-top:14px"><summary>💡 Inspírate en anuncios que ya funcionan</summary>
+        <p class="note">Abre la Biblioteca de anuncios de Meta, busca anuncios de lo mismo que vendes y toma captura de los que lleven <b>más de 30 días activos</b> (si alguien paga tanto tiempo, le está funcionando). Súbelas arriba como referencia.</p>
+        <div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="libQ" value="${esc(guessKeyword())}" placeholder="¿Qué buscar?"><a class="btn sm" id="libGo" target="_blank" rel="noopener" href="#" style="text-decoration:none;flex:0 0 auto">Abrir ↗</a></div>
+      </details>`;
+    if(hasProductPhoto()) h+=`<div class="card" style="margin-top:12px"><label class="switch"><input type="checkbox" id="exact" ${exactOn()?"checked":""}><span class="tg"></span><span><b>Pegar mi producto encima (opcional)</b><br><span class="note" style="margin:0">Úsalo solo si la IA te cambia el producto: crea el fondo y la app coloca tu foto real encima.</span></span></label></div>`;
   } else if(s.type==="brand"){
     const m=a.marca||{};
     h+=`<input type="text" id="bn" placeholder="Tu nombre" value="${esc(m.nombre||"")}">
       <label class="small">Tu compañía o marcas (opcional)</label><input type="text" id="bc" placeholder="Ej. Celion, Alpha Size" value="${esc(m.compania||"")}">
       <label class="small">WhatsApp (opcional)</label><input type="text" id="bw" inputmode="tel" placeholder="Ej. 33 1234 5678" value="${esc(m.whatsapp||"")}">`;
+  } else if(s.type==="agentq"){
+    const g=a.agente||{};
+    const F=[["nombre","¿Cómo se llama tu agente?","Ej. Sofía, asesora de bienestar"],["horario","Horario de atención","Ej. 24/7 · o lunes a sábado de 9 a 8"],["cierre","¿Cómo cierras la venta o la cita?","Ej. Link de pago, transferencia, agenda en Calendly, dirección del local"],["humano","¿Cuándo debe pasarte la conversación?","Ej. Si piden hablar conmigo o quieren comprar más de 5 piezas"],["estilo","¿Algo más que deba hacer o decir?","Ej. Siempre pedir el nombre, usar emojis, ofrecer el 2x1"]];
+    h+=F.map(([k,l,ph])=>`<label class="small">${esc(l)}</label><input type="text" data-ag="${k}" value="${esc(g[k]||"")}" placeholder="${esc(ph)}">`).join("");
   }
   $("#qbox").innerHTML=h; bindStep(s); updateNav();
 }
@@ -616,6 +665,7 @@ function drawFiles(){
   if($("#attList")) $("#attList").innerHTML=fileList(state.files.material,"m");
   if($("#refList")) $("#refList").innerHTML=fileList(state.files.refs.map(b=>({blob:b,type:"image/",name:"Referencia"})),"r");
   $$("[data-rm]").forEach(b=>b.onclick=()=>{ const [k,i]=b.dataset.rm.split(":"); (k==="m"?state.files.material:state.files.refs).splice(+i,1); drawFiles(); updateNav(); });
+  $$("[data-kind]").forEach(b=>b.onclick=()=>{ const f=state.files.material[+b.dataset.kind]; const k=KIND_CYCLE.indexOf(f.kind); f.kind=KIND_CYCLE[(k+1)%KIND_CYCLE.length]; drawFiles(); });
 }
 function bindStep(s){
   const a=state.answers;
@@ -629,8 +679,14 @@ function bindStep(s){
     const inp=$("#inp"); inp.oninput=()=>{a[s.id]=inp.value; $$("#qbox [data-fill]").forEach(c=>c.classList.toggle("on",c.dataset.fill===inp.value)); save(); updateNav();};
     $$("#qbox [data-fill]").forEach(c=>c.onclick=()=>{ inp.value=c.dataset.fill; inp.oninput(); });
     if(s.voice) bindVoice($("#mic"), t=>$("#miclabel").textContent=t, t=>{ inp.value=(inp.value?inp.value.trim()+" ":"")+t; inp.oninput(); });
-    if(s.attach){ $("#att").onchange=e=>{ for(const f of e.target.files){ if(state.files.material.length>=6) break; if(f.size>15e6){ toast(f.name+" pesa más de 15 MB"); continue; } state.files.material.push({id:uid(),name:f.name,type:f.type||"application/octet-stream",blob:f}); } e.target.value=""; drawFiles(); updateNav(); }; drawFiles(); }
+    if(s.attach){ $("#att").onchange=e=>{ addMaterial(e.target.files,"auto"); e.target.value=""; drawFiles(); updateNav(); }; drawFiles(); }
     if(!("ontouchstart" in window)) setTimeout(()=>inp.focus(),50);
+  }
+  if(s.type==="details"){
+    const v=a.detalles=a.detalles||{};
+    $$("[data-det]").forEach(i=>i.oninput=()=>{ v[i.dataset.det]=i.value; save(); });
+    $$("[data-pk]").forEach(i=>i.onchange=e=>{ addMaterial(e.target.files,i.dataset.pk); e.target.value=""; drawFiles(); });
+    drawFiles();
   }
   if(s.type==="budget"){
     const b=a.presupuesto=a.presupuesto||{diario:150,dias:7,moneda:"MXN"};
@@ -644,6 +700,7 @@ function bindStep(s){
   if(s.type==="style"){
     $("#rf").onchange=e=>{ for(const f of e.target.files) if(state.files.refs.length<3) state.files.refs.push(f); e.target.value=""; drawFiles(); updateNav(); };
     if($("#exact")) $("#exact").onchange=e=>{ state.exact=e.target.checked; };
+    const setLib=()=>{ $("#libGo").href=libraryURL($("#libQ").value||""); }; $("#libQ").oninput=setLib; setLib();
     drawFiles();
   }
   if(s.type==="brand"){
@@ -652,6 +709,7 @@ function bindStep(s){
     $("#bc").oninput=e=>{m.compania=e.target.value; save();};
     $("#bw").oninput=e=>{m.whatsapp=e.target.value; save();};
   }
+  if(s.type==="agentq"){ const g=a.agente=a.agente||{}; $$("[data-ag]").forEach(i=>i.oninput=()=>{ g[i.dataset.ag]=i.value; save(); }); }
 }
 function stepValid(s){
   const v=state.answers[s.id];
@@ -662,30 +720,68 @@ function stepValid(s){
   if(s.type==="brand") return !!(v&&v.nombre&&v.nombre.trim());
   return true;
 }
+function stepEmpty(s){
+  const v=state.answers[s.id];
+  if(s.type==="style") return !state.files.refs.length;
+  if(s.type==="details") return !Object.values(v||{}).some(x=>x&&x.trim()) && !state.files.material.length;
+  if(s.type==="agentq") return !Object.values(v||{}).some(x=>x&&x.trim());
+  return s.multi ? !(v||[]).length : !v;
+}
 function updateNav(){
   if($("#s-review").classList.contains("on")){ $("#navNext").textContent="Armar mi campaña ✦"; $("#navNext").disabled=false; $("#navSkip").classList.add("hidden"); return; }
   const s=STEPS[state.step];
-  const empty = s.type==="style" ? !state.files.refs.length : (s.multi?!(state.answers[s.id]||[]).length : !state.answers[s.id]);
   $("#navNext").disabled=!stepValid(s);
   $("#navNext").textContent = state.returnToReview ? "Listo" : (state.step===STEPS.length-1?"Revisar":"Siguiente");
-  $("#navSkip").classList.toggle("hidden", !(s.optional && empty));
+  $("#navSkip").classList.toggle("hidden", !(s.optional && stepEmpty(s)));
   $("#navSkip").textContent = s.type==="style" ? "No tengo" : "Omitir";
 }
 function save(){ store.set(LS.answers,state.answers); }
 function next(){ if(state.returnToReview){ state.returnToReview=false; return review(); } if(state.step<STEPS.length-1){ state.step++; renderStep(); scrollTo({top:0}); } else review(); }
 function back(){ if($("#s-review").classList.contains("on")){ state.step=STEPS.length-1; show("s-wizard"); renderStep(); return; } if(state.step>0){ state.step--; renderStep(); } else home(); }
-$("#navNext").onclick=()=>{ if($("#s-review").classList.contains("on")) generate(); else next(); };
+$("#navNext").onclick=()=>{ if($("#s-review").classList.contains("on")) prepare(); else next(); };
 $("#navBack").onclick=back;
-$("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type!=="style") state.answers[s.id]= s.multi?[]:""; save(); next(); };
+$("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type==="chips"||s.type==="text") state.answers[s.id]= s.multi?[]:""; save(); next(); };
 
 function review(){
-  const a=state.answers, b=a.presupuesto||{}, m=a.marca||{};
-  const rows=[[0,"Promocionas",a.tipo],[1,"Descripción",(a.descripcion||"")+(state.files.material.length?`\n📎 ${state.files.material.length} archivo(s)`:"")],[2,"Detalles",a.oferta||"—"],[3,"Objetivo",a.objetivo],
+  const a=state.answers, b=a.presupuesto||{}, m=a.marca||{}, d=a.detalles||{}, g=a.agente||{};
+  const det=Object.entries(d).filter(([k,v])=>v&&v.trim()).map(([k,v])=>v).join(" · ");
+  const rows=[[0,"Promocionas",a.tipo],[1,"Descripción",(a.descripcion||"")+(state.files.material.length?`\n📎 ${state.files.material.length} archivo(s)`:"")],[2,"Datos",det||"—"],[3,"Objetivo",a.objetivo],
     [4,"Dónde",a.ubicacion],[5,"Público",a.publico||"Que decida la IA"],[6,"Presupuesto",`$${b.diario} ${b.moneda}/día · ${b.dias} días`],
-    [7,"Estilo",(state.files.refs.length?state.files.refs.length+" referencia(s)":"Libre")+(matImages().length?(exactOn()?" · producto exacto":" · producto recreado por IA"):"")],[8,"Marca",[m.nombre,m.compania].filter(Boolean).join(" · ")||"—"],[9,"Tono",(a.tono||[]).join(", ")||"Automático"]];
+    [7,"Estilo",(state.files.refs.length?state.files.refs.length+" referencia(s)":"Libre")+(exactOn()?" · producto pegado encima":"")],[8,"Marca",[m.nombre,m.compania].filter(Boolean).join(" · ")||"—"],[9,"Agente",[g.nombre,g.cierre].filter(Boolean).join(" · ")||"Automático"],[10,"Tono",(a.tono||[]).join(", ")||"Automático"]];
   $("#summary").innerHTML=rows.map(([i,k,v])=>`<div class="sumrow" data-i="${i}" style="cursor:pointer"><span>${k}</span><div style="white-space:pre-wrap">${esc(String(v||"—").slice(0,160))}${String(v||"").length>160?"…":""}</div></div>`).join("");
   $$(".sumrow").forEach(r=>r.onclick=()=>{ state.step=+r.dataset.i; state.returnToReview=true; show("s-wizard"); renderStep(); });
   show("s-review"); updateNav();
+}
+
+/* ---- Cambio 12: la IA revisa y pregunta lo que falta ---- */
+const GAP = `Eres el asistente de Cel.IA. Revisas lo que un emprendedor te dio para armar una campaña de Meta Ads y un agente de WhatsApp que vende.
+1) Clasifica cada imagen adjunta (en orden) como: producto, etiqueta, flyer, persona, lugar u otro.
+2) Haz de 0 a 5 preguntas SOLO de datos esenciales que falten para vender bien (por ejemplo: precio, cómo se compra o paga, envíos, fecha, lugar, qué incluye, a quién va dirigido). No preguntes lo que ya está en el texto, en los datos o en las imágenes/documentos. Preguntas cortas, amigables, en español de México, con un ejemplo de respuesta.
+Devuelve SOLO JSON: {"imagenes":[{"indice":0,"tipo":"producto"}], "preguntas":[{"pregunta":"","ejemplo":""}]}`;
+async function prepare(){
+  show("s-loading"); $("#loaderr").textContent=""; $("#btnRetry").classList.add("hidden"); $("#loadmsg").textContent="Revisando tu información…";
+  try{
+    if(!state.models.text) await detectModels();
+    state.c=newCampaign();
+    const c=state.c, imgs=c.material.filter(f=>/^image\//.test(f.type));
+    const parts=[];
+    for(const f of imgs) try{ parts.push({type:"input_image",image_url:await shrink(f.blob,512)}); }catch(e){}
+    for(const f of c.material.filter(f=>f.type==="application/pdf")) try{ parts.push({type:"input_file",filename:f.name,file_data:await blobToDataURL(f.blob)}); }catch(e){}
+    const r=await llm({system:GAP, user:briefFrom(c), parts, json:true});
+    (r.imagenes||[]).forEach(x=>{ const f=imgs[x.indice]; if(f && (!f.kind||f.kind==="auto")) f.kind = KINDS[x.tipo]?x.tipo:"producto"; });
+    imgs.forEach(f=>{ if(!f.kind||f.kind==="auto") f.kind="producto"; });
+    const qs=(r.preguntas||[]).slice(0,5);
+    if(!qs.length) return generate();
+    renderGaps(qs);
+  }catch(e){ if(e.status===401||e.status===429){ $("#loadmsg").textContent="Algo falló"; $("#loaderr").textContent=friendly(e); $("#btnRetry").classList.remove("hidden"); $("#btnRetry").onclick=prepare; } else generate(); }
+}
+function renderGaps(qs){
+  const c=state.c;
+  $("#gapBox").innerHTML=qs.map((q,i)=>`<label class="small" style="color:var(--text);font-size:15px">${esc(q.pregunta)}</label><div style="display:flex;gap:8px;align-items:center"><input type="text" data-gap="${i}" placeholder="${esc(q.ejemplo?("Ej. "+q.ejemplo.replace(/^ej\.?\s*/i,"")):"")}">${micButton("gmic"+i)}</div>`).join("");
+  qs.forEach((q,i)=>bindVoice($("#gmic"+i), t=>toast(t), t=>{ const x=$(`[data-gap="${i}"]`); x.value=(x.value?x.value+" ":"")+t; }));
+  $("#gapGo").onclick=()=>{ c.answers.extra=qs.map((q,i)=>({q:q.pregunta,a:$(`[data-gap="${i}"]`).value.trim()})).filter(x=>x.a); generate(); };
+  $("#gapSkip").onclick=()=>generate();
+  show("s-gaps");
 }
 
 /* ---------------- Cerebro ---------------- */
@@ -698,14 +794,24 @@ ESTRATEGIA:
 - No tocar la campaña los primeros 3 a 4 días. Para eventos, empezar 7 a 10 días antes.
 - Reglas de optimización con cifras basadas en su presupuesto. Marca como estimación los costos esperados.
 
+ÁNGULOS QUE FUNCIONAN (manual interno, úsalo como punto de partida):
+- Suplementos y salud: síntoma cotidiano identificable (cansancio, digestión pesada, inflamación, mal dormir) hablado en general; ritual diario fácil; ingrediente estrella; demostración de uso; comunidad que ya lo toma; precio por día ("menos que un café"); garantía.
+- Eventos: fecha + lugar + cupo limitado; qué te llevas (transformación); ponente como autoridad; gratis con registro; urgencia real de fecha.
+- Retos: "empieza el lunes"; comunidad y acompañamiento; cambio visible en X días sin promesas médicas; costo de entrada bajo; qué incluye.
+- Oportunidad de negocio: propósito y estilo de vida; aprender habilidades digitales/IA; historia del líder; invitación a una presentación o evento como llamada a la acción.
+- Servicios: qué vas a descubrir; experiencia; autoridad; citas limitadas; primera vez con beneficio.
+- Fórmulas de hook: pregunta directa, "Si te pasa X…", "Lo que nadie te dice de…", número concreto, contraste antes/ahora (sin fotos de antes y después), objeción al revés ("No es otra dieta…").
+Si el usuario adjunta capturas de anuncios de otros como referencia, extrae sus ángulos, hooks y estructura y crea versiones propias; nunca copies su texto, marca ni imágenes.
+
 LIBERTAD Y ADVERTENCIAS (muy importante):
-- Respeta lo que el usuario quiere decir. Usa libremente su nombre, su compañía y sus marcas (texto e imágenes). No bloquees ni suavices su mensaje por tu cuenta.
+- Eres experto en vender. Respeta lo que el usuario quiere decir y los beneficios que él afirma de su producto o servicio; úsalos con seguridad y persuasión. Usa libremente su nombre, su compañía y sus marcas (texto e imágenes). No bloquees ni suavices su mensaje por tu cuenta.
 - Si un anuncio puede chocar con las políticas de Meta (atributos personales como "¿Tienes sobrepeso?", promesas de cura o resultados médicos, antes y después, promesas de ingresos o "hazte rico", superlativos sin prueba), ESCRÍBELO de todos modos como lo pidió el usuario y llena "advertencia" con el riesgo en una frase, y "version_segura" con una alternativa que conserve la intención. Si no hay riesgo, deja advertencia "" y version_segura null.
 - Promesas de ingresos y de curas: la advertencia debe decir que pueden causar restricción de la cuenta publicitaria completa.
 
 CREATIVOS Y COPIES:
 - Cada anuncio con un ÁNGULO distinto (dolor, resultado deseado, curiosidad, autoridad, urgencia real, comunidad, oportunidad…).
 - Texto principal: primera línea hook de máximo 125 caracteres; 2 a 5 líneas cortas; cierre con llamada a la acción. Emojis con moderación.
+- Si conoces el precio y el ángulo lo permite, inclúyelo en texto_en_imagen tal como lo dio el usuario y con su moneda (ej. "$499 MXN"). Nunca lo conviertas a decimales.
 - Título máx. 40 caracteres. Descripción máx. 30. CTA: botón real de Meta (Enviar mensaje, Más información, Registrarte, Comprar, Reservar).
 - texto_en_imagen: máximo 6 palabras.
 - prompt_imagen: imagen publicitaria vertical concreta: sujeto, escena, luz, encuadre, colores, emoción. Fotografía realista profesional salvo que convenga gráfico. Personas latinoamericanas cuando aparezcan. Sin logotipos de marcas ajenas (las del usuario sí). Texto en la zona central segura.
@@ -714,8 +820,9 @@ NO INVENTES DATOS: si falta precio, fecha, dirección o dato, escribe [COMPLETA:
 
 META PASO A PASO (pasos_meta): entre 8 y 12 pasos. Cada paso: "pantalla" (una de: inicio, objetivo, campana, presupuesto, conversion, publico, ubicaciones, anuncio, texto, whatsapp, publicar), "titulo" corto, "tocar" (el botón u opción exacta que se toca, como aparece en Meta en español), "valor" (lo que se escribe o elige; "" si no aplica) y "detalle" (1 o 2 frases simples).
 
-AGENTE DE WHATSAPP: 2 prompts:
-1) prompt_personalidad: objetivo, personalidad y tono, PROCESO paso a paso (saludo, 2 o 3 preguntas, presentar la solución, manejar objeciones, cierre según el objetivo, cuándo pasar con humano), reglas (mensajes cortos tipo WhatsApp, una pregunta a la vez) y qué hacer si no sabe algo.
+AGENTE DE WHATSAPP: un vendedor experto (o un asistente servicial si el objetivo es atender o agendar). Seguro, cálido, persuasivo; conoce a fondo el producto o servicio; usa con confianza los beneficios que el usuario afirma; maneja objeciones; insiste con respeto; siempre lleva a la acción (compra, cita o registro) y da seguimiento. No lo hagas restrictivo ni evasivo. Única regla de cuidado: si el cliente menciona un diagnóstico o que toma medicamento, presenta el producto como apoyo o complemento y que siga con su médico, sin dejar de vender.
+Usa los datos del agente que dio el usuario (nombre, horario, cómo cierra, cuándo pasar con humano, instrucciones extra). 2 prompts:
+1) prompt_personalidad: nombre y rol del agente, objetivo, personalidad y tono, PROCESO paso a paso (saludo con su nombre, 2 o 3 preguntas para entender a la persona, presentar la solución conectada a lo que dijo, manejar objeciones con respuestas concretas, cierre con el método de pago/cita/registro exacto, seguimiento si no responde, cuándo pasar con humano), reglas de estilo (mensajes cortos tipo WhatsApp, una pregunta a la vez, emojis con moderación) y ejemplos de 3 respuestas ideales.
 2) base_conocimiento: documento ordenado con encabezados en MAYÚSCULAS: información del negocio/producto, qué incluye, precios y promociones, fechas y ubicación, a quién va dirigido, beneficios, al menos 12 preguntas frecuentes con respuesta, al menos 6 objeciones con respuesta, proceso de compra o registro, contacto. [COMPLETA: …] donde falte.
 
 Devuelve SOLO un JSON válido con esta forma exacta:
@@ -726,28 +833,35 @@ Devuelve SOLO un JSON válido con esta forma exacta:
  "por_que_cantidad": "",
  "anuncios": [{"angulo":"", "por_que_funciona":"", "texto_principal":"", "titulo":"", "descripcion":"", "cta":"", "texto_en_imagen":"", "prompt_imagen":"", "advertencia":"", "version_segura": null}],
  "pasos_meta": [{"pantalla":"", "titulo":"", "tocar":"", "valor":"", "detalle":""}],
+ "datos_clave": {"producto":"", "precio":"", "oferta":"", "fecha":"", "lugar":"", "contacto":""},
  "mensaje_prellenado": "",
  "agente": {"prompt_personalidad":"", "base_conocimiento":""},
  "advertencias": ["datos faltantes o riesgos generales, si hay"]
 }
-version_segura, cuando aplique, es {"texto_principal":"", "titulo":""}.`;
+version_segura, cuando aplique, es {"texto_principal":"", "titulo":""}.
+datos_clave: los datos reales tal como los dio el usuario (precio con su moneda, ej. "$499 MXN"); "" si no se conocen.`;
 
 function briefFrom(c){
-  const a=c.answers, b=a.presupuesto||{}, m=a.marca||{}, mats=c.material||[];
+  const a=c.answers, b=a.presupuesto||{}, m=a.marca||{}, mats=c.material||[], d=a.detalles||{}, g=a.agente||{};
+  const detLines=detOf(a.tipo).fields.map(([k,l])=>d[k]&&d[k].trim()?`  · ${l}: ${d[k]}`:"").filter(Boolean).join("\n");
+  const imgs=mats.filter(f=>/^image\//.test(f.type));
   return `DATOS DEL USUARIO
 - Tipo de promoción: ${a.tipo}
-- Descripción: ${a.descripcion||"(ver archivos adjuntos)"}
-- Precio/oferta/fecha/lugar: ${a.oferta||"no indicó"}
+- Descripción (palabras del usuario): ${a.descripcion||"(ver archivos adjuntos)"}
+- Datos clave:
+${detLines||"  · (no dio datos extra)"}
+${(a.extra||[]).length? "- Respuestas a preguntas de la IA:\n"+a.extra.map(x=>`  · ${x.q} → ${x.a}`).join("\n") : ""}
 - Objetivo: ${a.objetivo}
 - Ubicación: ${a.ubicacion}
 - Público: ${a.publico||"no indicó, decide tú"}
 - Presupuesto: ${b.diario} ${b.moneda} diarios durante ${b.dias} días (total ${b.diario*b.dias} ${b.moneda})
-- Archivos adjuntos del usuario: ${mats.length? mats.map(f=>f.name).join(", ")+" (adjuntos a este mensaje; léelos y úsalos)":"ninguno"}
-- Modo de imagen: ${c.exact? "PRODUCTO EXACTO: la foto real del producto se coloca encima después. En prompt_imagen describe SOLO fondo y escena con una superficie o pedestal vacío al centro de la parte inferior; NO describas el producto ni envases. El texto va en el tercio superior." : (mats.some(f=>/^image\//.test(f.type))? "La IA usará las imágenes adjuntas (producto o flyer) como base y las mejorará para el anuncio.":"La IA crea las imágenes desde cero.")}
-- Referencias de estilo: ${(c.refs||[]).length? (c.refs.length+" imagen(es) adjunta(s) al final. Toma su estilo visual (colores, composición, tipografía, tipo de foto) sin copiar marcas, personas ni textos."):"ninguna"}
+- Archivos adjuntos: ${mats.length? mats.map(f=>`${f.name} (${KINDS[f.kind]||"archivo"})`).join(", ")+". Léelos y úsalos como fuente principal.":"ninguno"}
+- Imágenes: ${c.exact? "MODO PEGAR PRODUCTO: la foto real del producto se coloca encima después. En prompt_imagen describe SOLO fondo y escena con una superficie o pedestal vacío al centro de la parte inferior; no describas el producto ni envases. El texto va en el tercio superior." : (imgs.length? "la IA integrará las fotos reales del usuario (producto, personas, lugar o flyer) en cada anuncio sin alterarlas; describe escenas que las aprovechen.":"la IA crea las imágenes desde cero.")}
+- Referencias: ${(c.refs||[]).length? (c.refs.length+" imagen(es) al final: toma estilo visual y ángulos, sin copiar marcas, personas ni textos."):"ninguna"}
 - Nombre: ${m.nombre||""}
 - Compañía o marcas del usuario (úsalas libremente): ${m.compania||"no indicó"}
 - WhatsApp: ${m.whatsapp||"no indicó"}
+- Agente: nombre ${g.nombre||"(elige uno)"} · horario ${g.horario||"no indicó"} · cómo cierra ${g.cierre||"no indicó"} · pasar con humano ${g.humano||"no indicó"} · instrucciones extra ${g.estilo||"ninguna"}
 - Tono: ${(a.tono||[]).join(", ")||"elige el mejor"}
 Fecha de hoy: ${new Date().toLocaleDateString("es-MX",{day:"numeric",month:"long",year:"numeric"})}`;
 }
@@ -755,7 +869,7 @@ async function partsFor(c){
   const parts=[];
   for(const f of (c.material||[])){
     try{
-      if(/^image\//.test(f.type)) parts.push({type:"input_image",image_url:await shrink(f.blob,1024)});
+      if(/^image\//.test(f.type)){ parts.push({type:"input_text",text:`Imagen "${f.name}" (${KINDS[f.kind]||"imagen"}):`}); parts.push({type:"input_image",image_url:await shrink(f.blob,1024)}); }
       else if(f.type==="application/pdf") parts.push({type:"input_file",filename:f.name,file_data:await blobToDataURL(f.blob)});
       else if(/^text\//.test(f.type)) parts.push({type:"input_text",text:`ARCHIVO ${f.name}:\n`+(await f.blob.text()).slice(0,20000)});
     }catch(e){}
@@ -776,6 +890,7 @@ async function generate(){
   try{
     if(!state.models.text) await detectModels();
     if(!state.c || state.c.plan) state.c=newCampaign();
+    show("s-loading"); $("#btnRetry").onclick=generate;
     const c=state.c;
     const plan=await llm({system:SYSTEM, user:briefFrom(c), parts:await partsFor(c), json:true});
     if(!plan||!Array.isArray(plan.anuncios)||!plan.anuncios.length) throw new Error("La respuesta llegó incompleta. Intenta de nuevo.");
@@ -825,36 +940,61 @@ async function composite(bgBlob, productBlob){
 function roundRect(x,X,Y,w,h,r){ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); }
 
 /* ---------------- Imágenes ---------------- */
-function imagePrompt(ad, c){
-  const mats=(c.material||[]).filter(f=>/^image\//.test(f.type)); const hasRef=(c.refs||[]).length>0;
-  let p=`${ad.prompt_imagen}\n\nFormato: anuncio vertical para Facebook e Instagram, estética premium y moderna.`;
-  if(ad.texto_en_imagen) p+=` Incluye este texto exacto en español, grande, legible y bien escrito: "${ad.texto_en_imagen}".`;
-  p+=` Deja márgenes amplios arriba y abajo (la imagen se recortará a 4:5). Sin marcas de agua.`;
-  if(c.exact) p+=` IMPORTANTE: no dibujes ningún producto, frasco, envase ni empaque. Crea solo el fondo y la escena con una superficie o pedestal vacío centrado en la parte inferior (ocupa el 45% inferior), donde después se colocará la foto real del producto. Pon el texto en el tercio superior.`;
-  else if(mats.length) p+=` La primera imagen adjunta es material real del usuario (producto o flyer): mantenlo fiel (forma, etiqueta, colores, datos) y mejóralo para que funcione como anuncio.`;
-  if(hasRef) p+=` La ${!c.exact&&mats.length?"segunda":"primera"} imagen adjunta es solo referencia de estilo: no copies su contenido, marcas, personas ni textos.`;
+const KIND_RULE={
+  producto:"es el PRODUCTO REAL del usuario. Reprodúcelo EXACTAMENTE igual: mismo empaque, forma, proporciones, etiqueta, logotipo, textos y colores. No lo redibujes, no inventes otro diseño, no cambies su texto. Solo intégralo en la escena con luz y sombra coherentes, bien visible.",
+  etiqueta:"es la etiqueta del producto: úsala solo como información; si el producto aparece, sus textos deben coincidir.",
+  flyer:"es un FLYER o diseño del usuario. Úsalo como base: conserva su información exacta (fechas, precios, lugar, logotipos, fotos de personas y productos) y mejora el diseño para que funcione como anuncio vertical moderno.",
+  persona:"es una PERSONA REAL del usuario. Conserva exactamente su rostro, rasgos, tono de piel y peinado; intégrala de forma natural en la escena.",
+  lugar:"es el LUGAR REAL del negocio. Conserva su apariencia y úsalo como escenario."
+};
+const PRIORITY={"Producto":["producto","persona","lugar","flyer"],"Evento":["flyer","persona","lugar","producto"],"Servicio":["persona","lugar","producto","flyer"],"Reto":["persona","producto","flyer","lugar"],"Oportunidad de negocio":["persona","flyer","lugar","producto"]};
+function pickInput(c,i){
+  const imgs=(c.material||[]).filter(f=>/^image\//.test(f.type)&&f.kind!=="etiqueta"); if(!imgs.length) return null;
+  const order=PRIORITY[c.answers.tipo]||["producto","persona","flyer","lugar"];
+  if(c.answers.tipo==="Producto"){ const p=imgs.filter(f=>f.kind==="producto"); if(p.length) return p[i%p.length]; }
+  const sorted=[...imgs].sort((x,y)=>order.indexOf(x.kind)-order.indexOf(y.kind)); return sorted[i%sorted.length];
+}
+const productPhoto = (c,i) => { const p=(c.material||[]).filter(f=>f.kind==="producto"&&/^image\//.test(f.type)); return p.length? p[i%p.length] : null; };
+function datosTxt(c){ const d=Object.assign({}, (c.plan&&c.plan.datos_clave)||{}); const det=c.answers.detalles||{}; if(!d.precio&&det.precio) d.precio=det.precio;
+  const L={producto:"Producto",precio:"Precio",oferta:"Oferta",fecha:"Fecha",lugar:"Lugar",contacto:"Contacto"}; const m=c.answers.marca||{};
+  return Object.keys(L).filter(k=>d[k]).map(k=>`${L[k]}: ${d[k]}`).concat(m.compania?[`Marca: ${m.compania}`]:[]).join(" · "); }
+function imagePrompt(ad, c, input){
+  let p=`${ad.prompt_imagen}\n\nFormato: anuncio vertical para Facebook e Instagram, estética premium y moderna, fotografía o diseño de alta calidad.`;
+  if(ad.texto_en_imagen) p+=`\nTexto obligatorio en la imagen, escrito EXACTAMENTE así, letra por letra y número por número, en español, grande y legible: «${ad.texto_en_imagen}». No agregues decimales ni cambies cifras.`;
+  p+=`\nDeja márgenes amplios arriba y abajo (la imagen se recortará a 4:5). Sin marcas de agua.`;
+  const d=datosTxt(c); if(d) p+=`\nDatos reales (si aparecen en la imagen, deben ser exactos): ${d}.`;
+  if(c.exact) p+=`\nIMPORTANTE: no dibujes ningún producto, frasco, sobre, envase ni empaque. Crea solo el fondo y la escena con una superficie o pedestal vacío centrado en la parte inferior (ocupa el 45% inferior), donde después se colocará la foto real del producto. Pon el texto en el tercio superior.`;
+  else if(input) p+=`\nLa primera imagen adjunta ${KIND_RULE[input.kind]||KIND_RULE.producto}`;
+  if((c.refs||[]).length) p+=`\nLa ${!c.exact&&input?"segunda":"primera"} imagen adjunta es solo referencia de estilo (colores, composición, ambiente): no copies su contenido, marcas, personas ni textos.`;
+  return p;
+}
+function editPrompt(c, ad, instruction, withProduct){
+  let p=`Edita la PRIMERA imagen adjunta (el anuncio actual) aplicando SOLO este cambio: ${instruction}.
+Conserva todo lo demás idéntico: composición, colores, producto, personas y los textos que ya tiene (salvo que el cambio pida modificarlos).`;
+  const d=datosTxt(c); if(d) p+=`\nDatos reales de la campaña; si el cambio los necesita, úsalos EXACTAMENTE como están escritos, sin decimales ni conversiones: ${d}.`;
+  p+=`\nTodo texto nuevo va en español, escrito letra por letra sin errores, grande y legible.`;
+  if(withProduct) p+=`\nLa segunda imagen adjunta es el producto real: si aparece en el anuncio, debe verse exactamente así (empaque, etiqueta, logotipo y colores).`;
   return p;
 }
 async function makeImage(i, instruction){
   const c=state.c, ad=c.ads[i]; pending.add(c.id+":"+i); const box=state.c===c?$("#img"+i):null;
-  if(box) box.innerHTML=`<div class="st"><div class="mini"></div>${instruction?"Editando imagen…":"Creando imagen…"}</div>`;
+  if(box) box.innerHTML=`<div class="st"><div class="mini"></div>${instruction?"Aplicando tu cambio…":"Creando imagen…"}</div>`;
   setDl(i,false);
   try{
-    const mats=(c.material||[]).filter(f=>/^image\//.test(f.type)); const ref=(c.refs||[]).length? c.refs[i%c.refs.length]:null;
-    if(instruction){
-      const base = c.exact && ad.bg ? ad.bg : ad.img;
-      const ins = `Edita esta imagen de anuncio: ${instruction}. Mantén todo lo demás igual.${c.exact?" No agregues ningún producto, frasco ni envase; conserva la superficie vacía en la parte inferior.":""}`;
-      const out = await genImage(ins,[base]);
-      if(c.exact){ ad.bg=out; ad.img=await composite(out, mats[i%mats.length].blob); } else ad.img=out;
-    } else if(c.exact && mats.length){
-      ad.bg = await genImage(imagePrompt(ad,c), ref?[ref]:[]);
-      ad.img = await composite(ad.bg, mats[i%mats.length].blob);
+    const ref=(c.refs||[]).length? c.refs[i%c.refs.length]:null;
+    if(instruction && ad.img){
+      const prod=productPhoto(c,i);
+      ad.img = await genImage(editPrompt(c,ad,instruction,!!prod), prod?[ad.img,prod.blob]:[ad.img]);
+      ad.edits=(ad.edits||[]).concat(instruction);
+    } else if(c.exact && productPhoto(c,i)){
+      ad.bg = await genImage(imagePrompt(ad,c,null), ref?[ref]:[]);
+      ad.img = await composite(ad.bg, productPhoto(c,i).blob);
     } else {
-      const inputs=[]; if(mats.length) inputs.push(mats[i%mats.length].blob); if(ref) inputs.push(ref);
-      ad.img = await genImage(imagePrompt(ad,c), inputs); ad.bg=null;
+      const input=pickInput(c,i); const inputs=[]; if(input) inputs.push(input.blob); if(ref) inputs.push(ref);
+      ad.img = await genImage(imagePrompt(ad,c,input), inputs); ad.bg=null;
     }
     pending.delete(c.id+":"+i); idb.put(c).catch(()=>{}); if(state.c===c) paintImage(i);
-  }catch(e){ pending.delete(c.id+":"+i); if(box) box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" data-retry="${i}">Reintentar</button></div>`; const b=document.querySelector(`[data-retry="${i}"]`); if(b) b.onclick=()=>makeImage(i, instruction); if(ad.img) setDl(i,true); }
+  }catch(e){ pending.delete(c.id+":"+i); if(box) box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" data-retry="${i}">Reintentar</button></div>`; const b=document.querySelector(`[data-retry="${i}"]`); if(b) b.onclick=()=>makeImage(i, instruction); if(ad.img) setTimeout(()=>{ if(state.c===c) paintImage(i); },2500); }
 }
 function paintImage(i){ const box=$("#img"+i), ad=state.c.ads[i]; if(!box) return; if(ad.img){ box.innerHTML=`<img alt="Creativo ${i+1}" src="${urlFor(ad.img)}">`; setDl(i,true);} }
 function setDl(i,on){ $$(`[data-need-img="${i}"]`).forEach(b=>b.disabled=!on); }
@@ -933,11 +1073,12 @@ function renderAds(){
           <button class="btn line sm" data-regen="${i}">Otra versión</button>
         </div>
         <div class="edit" id="edit${i}">
+          <div class="chips" style="margin-bottom:10px">${QUICK.map(([k,t])=>`<button class="chip" style="padding:8px 12px;font-size:13px" data-quick="${i}:${k}">${t}</button>`).join("")}</div>
           <textarea id="editTxt${i}" style="min-height:80px" placeholder="¿Qué cambio? Ej. el producto más grande, fondo más claro, quita el texto…"></textarea>
           <div class="row">${micButton("editMic"+i)}<button class="btn sm" data-doedit="${i}">Aplicar cambio · ≈ ${usdFmt(avgImage())} USD</button></div>
           <div class="note" id="editLbl${i}"></div>
         </div>
-        <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad,c))}</details>
+        <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad,c,c.exact?null:pickInput(c,i)))}</details>
       </div>
     </div>`).join("") +
     `<button class="btn line full" id="addAd" style="margin-top:14px">+ Agregar anuncio de reserva</button>
@@ -947,6 +1088,7 @@ function renderAds(){
   $$("[data-dl9]").forEach(b=>b.onclick=()=>dl(+b.dataset.dl9,"9x16"));
   $$("[data-regen]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.regen));
   $$("[data-edit]").forEach(b=>b.onclick=()=>$("#edit"+b.dataset.edit).classList.toggle("on"));
+  $$("[data-quick]").forEach(b=>b.onclick=()=>{ const [i,k]=b.dataset.quick.split(":"); quickEdit(+i,k); });
   $$("[data-doedit]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.doedit; const t=$("#editTxt"+i).value.trim(); if(!t){ toast("Escribe qué quieres cambiar"); return; } $("#edit"+i).classList.remove("on"); makeImage(i,t); });
   c.ads.forEach((_,i)=>bindVoice($("#editMic"+i), t=>$("#editLbl"+i).textContent=t, t=>{ const x=$("#editTxt"+i); x.value=(x.value?x.value+" ":"")+t; }));
   $("#addAd").onclick=e=>addAd(e.currentTarget);
@@ -954,6 +1096,17 @@ function renderAds(){
   c.ads.forEach((ad,i)=>{ if(ad.img) paintImage(i); else if(pending.has(c.id+":"+i)) $("#img"+i).innerHTML=`<div class="st"><div class="mini"></div>Creando imagen…</div>`; else $("#img"+i).innerHTML=`<div class="st"><button class="btn line sm" data-mk="${i}">Crear imagen</button></div>`; });
   $$("[data-mk]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.mk));
   if(c.ads.some(a=>a.img)) $("#dlHint").classList.remove("hidden");
+}
+
+const QUICK=[["precio","💲 Agregar precio"],["texto","✏️ Cambiar texto"],["grande","🔍 Producto más grande"],["claro","☀️ Fondo más claro"],["sintexto","🚫 Quitar texto"]];
+function quickEdit(i,k){
+  const c=state.c, t=$("#editTxt"+i); const precio=((c.plan&&c.plan.datos_clave)||{}).precio||((c.answers.detalles||{}).precio)||"";
+  if(k==="precio"){ if(precio){ t.value=`Agrega el precio «${precio}» en grande y muy visible, con buen contraste`; } else { t.value="Agrega el precio «$ MXN» en grande y muy visible"; toast("Escribe el precio dentro de « »"); t.focus(); return; } }
+  if(k==="texto"){ t.value=`Cambia el texto principal de la imagen por «${c.ads[i].texto_en_imagen||""}»`; t.focus(); toast("Escribe el texto nuevo dentro de « »"); return; }
+  if(k==="grande") t.value="Haz el producto más grande y protagonista, sin cambiar su diseño";
+  if(k==="claro") t.value="Haz el fondo más claro y luminoso";
+  if(k==="sintexto") t.value="Quita todo el texto de la imagen";
+  $("#edit"+i).classList.remove("on"); makeImage(i,t.value);
 }
 
 /* ---- Meta: recorrido ---- */
@@ -1065,7 +1218,7 @@ async function runTest(){
   const c=state.c, v=curV(); const btn=$("#testGo"); btn.disabled=true; btn.textContent="Probando con 5 clientes…";
   testResult={loading:true}; paintTest();
   try{
-    const ctx=`Negocio: ${c.answers.tipo}. ${c.answers.descripcion||""} ${c.answers.oferta||""}`.slice(0,800);
+    const ctx=`Negocio: ${c.answers.tipo}. ${c.answers.descripcion||""} ${Object.values(c.answers.detalles||{}).join(". ")}`.slice(0,900);
     const convos = await Promise.all(PERSONAS.map(async ([n,d])=>{
       const T=[];
       for(let turn=0;turn<3;turn++){
@@ -1210,7 +1363,7 @@ $("#btnKey").onclick=async()=>{
 /* ---------------- Inicio ---------------- */
 function home(){ show("s-home"); renderHistory(); }
 $("#appname").onclick=()=>{ if(state.key) home(); };
-$("#btnStart").onclick=()=>{ state.answers={}; save(); state.files={material:[],refs:[]}; state.exact=null; state.c=null; state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
+$("#btnStart").onclick=()=>{  state.answers={}; save(); state.files={material:[],refs:[]}; state.exact=null; state.c=null; state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
 $("#btnNew").onclick=()=>home();
 
 state.key ? home() : show("s-setup");
