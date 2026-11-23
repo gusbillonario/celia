@@ -235,6 +235,18 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 .stat span{font-size:12px;color:var(--muted)}
 .prices{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;font-size:13px;color:var(--muted);margin-top:10px}
 .prices input{padding:8px 10px;font-size:14px}
+#studio{position:fixed;inset:0;z-index:30;background:#050505;overflow-y:auto;padding:calc(12px + env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom));display:none}
+#studio.on{display:block;animation:in .25s ease}
+#studio > *{max-width:560px;margin-left:auto;margin-right:auto}
+.sthead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.stage{position:relative;border-radius:14px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;container-type:inline-size;border:1px solid var(--line)}
+.stage img{display:block;width:100%;pointer-events:none}
+.selbox{position:absolute;border:2px dashed #fff;background:rgba(255,90,31,.25);box-shadow:0 0 0 9999px rgba(0,0,0,.35);pointer-events:none}
+.txtov{position:absolute;transform:translate(-50%,-50%);font-family:"Space Grotesk",Inter,Arial,sans-serif;font-weight:700;line-height:1.15;text-align:center;white-space:nowrap;cursor:move;outline:1px dashed rgba(255,255,255,.6);outline-offset:4px}
+.busy{position:absolute;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;align-content:center;gap:10px;color:#fff;font-size:14px}
+.busy .mini{width:34px;height:34px;border-radius:50%;border:2px solid transparent;border-top-color:var(--o);animation:spin 1s linear infinite}
+.swatch{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.25);padding:0}
+.swatch.on{border-color:var(--o);box-shadow:0 0 0 3px rgba(255,90,31,.35)}
 </style>
 
 </head>
@@ -379,6 +391,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
     <button class="btn full" id="btnSaveSettings" style="margin-top:16px">Guardar</button>
   </section>
 </div>
+<div id="studio"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -387,7 +400,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "3.3";
+const VERSION = "3.4";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -1017,16 +1030,18 @@ async function makeImage(i, instruction){
       ad.img = await genImage(editPrompt(c,ad,instruction,!!prod), prod?[ad.img,prod.blob]:[ad.img]);
       ad.edits=(ad.edits||[]).concat(instruction);
     } else if(c.exact && productPhoto(c,i)){
+      pushHistory(ad);
       ad.bg = await genImage(imagePrompt(ad,c,null), ref?[ref]:[]);
       ad.img = await composite(ad.bg, productPhoto(c,i).blob);
     } else {
       const input=pickInput(c,i); const inputs=[]; if(input) inputs.push(input.blob); if(ref) inputs.push(ref);
-      ad.img = await genImage(imagePrompt(ad,c,input), inputs); ad.bg=null;
+      const nu = await genImage(imagePrompt(ad,c,input), inputs); pushHistory(ad); ad.img = nu; ad.bg=null;
     }
     pending.delete(c.id+":"+i); idb.put(c).catch(()=>{}); if(state.c===c) paintImage(i);
   }catch(e){ pending.delete(c.id+":"+i); if(box) box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" data-retry="${i}">Reintentar</button></div>`; const b=document.querySelector(`[data-retry="${i}"]`); if(b) b.onclick=()=>makeImage(i, instruction); if(ad.img) setTimeout(()=>{ if(state.c===c) paintImage(i); },2500); }
 }
-function paintImage(i){ const box=$("#img"+i), ad=state.c.ads[i]; if(!box) return; if(ad.img){ box.innerHTML=`<img alt="Creativo ${i+1}" src="${urlFor(ad.img)}">`; setDl(i,true);} }
+function paintImage(i){ const box=$("#img"+i), ad=state.c.ads[i]; if(!box) return; if(ad.img){ box.innerHTML=`<img alt="Creativo ${i+1}" src="${urlFor(ad.img)}">`; setDl(i,true);
+  const row=box.parentElement.querySelector(".row"); if(row){ let u=row.querySelector("[data-undo]"); if((ad.history||[]).length&&!u){ u=document.createElement("button"); u.className="btn line sm"; u.dataset.undo=i; u.textContent="↩ Deshacer"; u.onclick=()=>undoImage(i); row.appendChild(u); } else if(!(ad.history||[]).length&&u) u.remove(); } } }
 function setDl(i,on){ $$(`[data-need-img="${i}"]`).forEach(b=>b.disabled=!on); }
 async function generateAllImages(){
   const c=state.c, todo=c.ads.map((a,i)=>i).filter(i=>!c.ads[i].img); let k=0;
@@ -1119,14 +1134,9 @@ function renderAds(){
         <div class="row">
           <button class="btn sm" data-dl="${i}" data-need-img="${i}" disabled>Descargar 4:5</button>
           <button class="btn line sm" data-dl9="${i}" data-need-img="${i}" disabled>9:16</button>
-          <button class="btn line sm" data-edit="${i}" data-need-img="${i}" disabled>Editar imagen</button>
+          <button class="btn line sm" data-edit="${i}" data-need-img="${i}" disabled>✦ Editar imagen</button>
           <button class="btn line sm" data-regen="${i}">Otra versión</button>
-        </div>
-        <div class="edit" id="edit${i}">
-          <div class="chips" style="margin-bottom:10px">${QUICK.map(([k,t])=>`<button class="chip" style="padding:8px 12px;font-size:13px" data-quick="${i}:${k}">${t}</button>`).join("")}</div>
-          <textarea id="editTxt${i}" style="min-height:80px" placeholder="¿Qué cambio? Ej. el producto más grande, fondo más claro, quita el texto…"></textarea>
-          <div class="row">${micButton("editMic"+i)}<button class="btn sm" data-doedit="${i}">Aplicar cambio · ≈ ${usdFmt(avgImage())} USD</button></div>
-          <div class="note" id="editLbl${i}"></div>
+          ${(ad.history||[]).length?`<button class="btn line sm" data-undo="${i}">↩ Deshacer</button>`:""}
         </div>
         <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad,c,c.exact?null:pickInput(c,i)))}</details>
       </div>
@@ -1137,10 +1147,8 @@ function renderAds(){
   $$("[data-dl]").forEach(b=>b.onclick=()=>dl(+b.dataset.dl,"4x5"));
   $$("[data-dl9]").forEach(b=>b.onclick=()=>dl(+b.dataset.dl9,"9x16"));
   $$("[data-regen]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.regen));
-  $$("[data-edit]").forEach(b=>b.onclick=()=>$("#edit"+b.dataset.edit).classList.toggle("on"));
-  $$("[data-quick]").forEach(b=>b.onclick=()=>{ const [i,k]=b.dataset.quick.split(":"); quickEdit(+i,k); });
-  $$("[data-doedit]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.doedit; const t=$("#editTxt"+i).value.trim(); if(!t){ toast("Escribe qué quieres cambiar"); return; } $("#edit"+i).classList.remove("on"); makeImage(i,t); });
-  c.ads.forEach((_,i)=>bindVoice($("#editMic"+i), t=>$("#editLbl"+i).textContent=t, t=>{ const x=$("#editTxt"+i); x.value=(x.value?x.value+" ":"")+t; }));
+  $$("[data-edit]").forEach(b=>b.onclick=()=>openStudio(+b.dataset.edit));
+  $$("[data-undo]").forEach(b=>b.onclick=()=>undoImage(+b.dataset.undo));
   $("#addAd").onclick=e=>addAd(e.currentTarget);
   $("#dlAll").onclick=async()=>{ for(let i=0;i<c.ads.length;i++){ if(c.ads[i].img){ await dl(i,"4x5"); await new Promise(r=>setTimeout(r,600)); } } };
   c.ads.forEach((ad,i)=>{ if(ad.img) paintImage(i); else if(pending.has(c.id+":"+i)) $("#img"+i).innerHTML=`<div class="st"><div class="mini"></div>Creando imagen…</div>`; else $("#img"+i).innerHTML=`<div class="st"><button class="btn line sm" data-mk="${i}">Crear imagen</button></div>`; });
@@ -1148,15 +1156,151 @@ function renderAds(){
   if(c.ads.some(a=>a.img)) $("#dlHint").classList.remove("hidden");
 }
 
-const QUICK=[["precio","💲 Agregar precio"],["texto","✏️ Cambiar texto"],["grande","🔍 Producto más grande"],["claro","☀️ Fondo más claro"],["sintexto","🚫 Quitar texto"]];
-function quickEdit(i,k){
-  const c=state.c, t=$("#editTxt"+i); const precio=((c.plan&&c.plan.datos_clave)||{}).precio||((c.answers.detalles||{}).precio)||"";
-  if(k==="precio"){ if(precio){ t.value=`Agrega el precio «${precio}» en grande y muy visible, con buen contraste`; } else { t.value="Agrega el precio «$ MXN» en grande y muy visible"; toast("Escribe el precio dentro de « »"); t.focus(); return; } }
-  if(k==="texto"){ t.value=`Cambia el texto principal de la imagen por «${c.ads[i].texto_en_imagen||""}»`; t.focus(); toast("Escribe el texto nuevo dentro de « »"); return; }
-  if(k==="grande") t.value="Haz el producto más grande y protagonista, sin cambiar su diseño";
-  if(k==="claro") t.value="Haz el fondo más claro y luminoso";
-  if(k==="sintexto") t.value="Quita todo el texto de la imagen";
-  $("#edit"+i).classList.remove("on"); makeImage(i,t.value);
+/* =========================================================
+   Cambio 19 · Estudio de edición
+   - Editar con IA: zona seleccionada (máscara) + instrucción mejorada
+   - Agregar texto: exacto, arrastrable (sin IA)
+   - Historial / deshacer
+   ========================================================= */
+const ST = { i:-1, mode:"ia", sel:null, txt:null, drag:null };
+const TXT_COLORS=["#ffffff","#111111","#ff5a1f","#ffd23f","#e11d2e","#1f7a3a"];
+function pushHistory(ad){ if(!ad.img) return; ad.history=(ad.history||[]); ad.history.push(ad.img); if(ad.history.length>6) ad.history.shift(); }
+function undoImage(i){ const c=state.c, ad=c.ads[i]; if(!ad.history||!ad.history.length) return; ad.img=ad.history.pop(); idb.put(c).catch(()=>{}); paintImage(i); if(ST.i===i) paintStudio(); toast("Regresé a la versión anterior"); }
+const precioDe = c => ((c.plan&&c.plan.datos_clave)||{}).precio || ((c.answers.detalles||{}).precio) || "";
+
+function openStudio(i, mode, preset){
+  ST.i=i; ST.mode=mode||"ia"; ST.sel=null; ST.drag=null;
+  ST.txt = { text: preset||"", color:"#ffffff", size:9, box:"none", boxColor:"#ff5a1f", x:50, y:50 };
+  $("#studio").classList.add("on"); document.body.style.overflow="hidden"; paintStudio();
+}
+function closeStudio(){ $("#studio").classList.remove("on"); document.body.style.overflow=""; ST.i=-1; }
+
+function paintStudio(){
+  const c=state.c, ad=c.ads[ST.i]; if(!ad||!ad.img) return closeStudio();
+  const T=ST.txt, ia=ST.mode==="ia";
+  $("#studio").innerHTML=`
+   <div class="sthead"><button class="ghost" id="stClose">✕ Cerrar</button><b>Editar anuncio ${ST.i+1}</b><button class="ghost" id="stUndo" ${(ad.history||[]).length?"":"disabled"}>↩ Deshacer</button></div>
+   <div class="seg" style="margin:0 0 12px"><button data-sm="ia" class="${ia?"on":""}">✦ Editar con IA</button><button data-sm="txt" class="${ia?"":"on"}">Aa Agregar texto</button></div>
+   <div class="stage" id="stage"><img id="stImg" src="${urlFor(ad.img)}" alt="">
+     ${ia&&ST.sel?`<div class="selbox" style="left:${ST.sel.x}%;top:${ST.sel.y}%;width:${ST.sel.w}%;height:${ST.sel.h}%"></div>`:""}
+     ${!ia&&T.text?`<div class="txtov" id="txtov" style="left:${T.x}%;top:${T.y}%;color:${T.color};font-size:${T.size*0.01*100}cqw;${T.box!=="none"?`background:${T.boxColor};padding:.18em .5em;border-radius:.35em;`:"text-shadow:0 2px 10px rgba(0,0,0,.55);"}">${esc(T.text).replace(/\n/g,"<br>")}</div>`:""}
+     <div class="busy hidden" id="stBusy"><div class="mini"></div><span id="stBusyTxt">Aplicando tu cambio…</span></div>
+   </div>
+   ${ia?`
+     <p class="note" style="margin:10px 0 8px">${ST.sel?"✓ Zona seleccionada. La IA cambiará solo esa parte.":"Opcional: <b>arrastra el dedo sobre la imagen</b> para marcar la zona que quieres cambiar."} ${ST.sel?`<a href="#" id="selClear">Quitar selección</a>`:""}</p>
+     <div class="chips" style="margin-bottom:10px">${[["grande","🔍 Producto más grande"],["claro","☀️ Fondo más claro"],["sintexto","🚫 Quitar texto"],["precio","💲 Agregar precio"]].map(([k,t])=>`<button class="chip" style="padding:8px 12px;font-size:13px" data-q="${k}">${t}</button>`).join("")}</div>
+     <textarea id="stIns" style="min-height:84px" placeholder="¿Qué cambio quieres? Ej. cambia el fondo a una cocina moderna, haz que la persona sonría, quita el logo de la esquina…"></textarea>
+     <div class="row" style="align-items:center">${micButton("stMic")}<button class="btn" id="stGo" style="flex:1">Aplicar cambio · ≈ ${usdFmt(avgImage()+0.003)} USD</button></div>
+     <div class="note" id="stLbl"></div>
+     <p class="note">Tip: para textos, precios y fechas usa <b>Agregar texto</b>: sale exacto siempre.</p>`
+   :`
+     <label class="small">Texto</label><textarea id="tIn" style="min-height:70px" placeholder="Ej. $499 MXN">${esc(T.text)}</textarea>
+     <div class="chips" style="margin-top:8px">${precioDe(c)?`<button class="chip" data-fillt="${esc(precioDe(c))}">💲 ${esc(precioDe(c))}</button>`:""}${ad.texto_en_imagen?`<button class="chip" data-fillt="${esc(ad.texto_en_imagen)}">${esc(ad.texto_en_imagen)}</button>`:""}</div>
+     <label class="small">Color</label><div class="chips">${TXT_COLORS.map(col=>`<button class="swatch ${T.color===col?"on":""}" data-col="${col}" style="background:${col}"></button>`).join("")}</div>
+     <label class="small">Tamaño</label><input type="range" id="tSize" min="3" max="20" step="0.5" value="${T.size}" style="width:100%">
+     <label class="small">Estilo</label><div class="chips">${[["none","Sin fondo"],["box","Etiqueta"]].map(([k,t])=>`<button class="chip ${T.box===k?"on":""}" data-box="${k}">${t}</button>`).join("")}${T.box==="box"?TXT_COLORS.map(col=>`<button class="swatch ${T.boxColor===col?"on":""}" data-bcol="${col}" style="background:${col}"></button>`).join(""):""}</div>
+     <p class="note">Arrastra el texto sobre la imagen para acomodarlo.</p>
+     <button class="btn full" id="tGo" style="margin-top:6px">Poner texto en la imagen</button>`}
+  `;
+  $("#stClose").onclick=closeStudio; $("#stUndo").onclick=()=>undoImage(ST.i);
+  $$("[data-sm]").forEach(b=>b.onclick=()=>{ ST.mode=b.dataset.sm; paintStudio(); });
+  bindStage();
+  if(ia){
+    if($("#selClear")) $("#selClear").onclick=e=>{ e.preventDefault(); ST.sel=null; paintStudio(); };
+    bindVoice($("#stMic"), t=>$("#stLbl").textContent=t, t=>{ const x=$("#stIns"); x.value=(x.value?x.value+" ":"")+t; });
+    $$("[data-q]").forEach(b=>b.onclick=()=>{ const k=b.dataset.q;
+      if(k==="precio"){ ST.mode="txt"; ST.txt.text=precioDe(c)||"$ MXN"; ST.txt.box="box"; ST.txt.y=78; paintStudio(); if(!precioDe(c)) toast("Escribe tu precio"); return; }
+      $("#stIns").value={grande:"Haz el producto más grande y protagonista, sin cambiar su diseño ni su etiqueta",claro:"Haz el fondo más claro y luminoso, sin tocar el producto ni los textos",sintexto:"Quita todo el texto de la imagen y rellena con el fondo"}[k]; });
+    $("#stGo").onclick=applyAIEdit;
+  } else {
+    const upd=()=>{ paintStudio(); };
+    $("#tIn").oninput=e=>{ T.text=e.target.value; const ov=$("#txtov"); if(ov) ov.innerHTML=esc(T.text).replace(/\n/g,"<br>"); else upd(); };
+    $$("[data-fillt]").forEach(b=>b.onclick=()=>{ T.text=b.dataset.fillt; upd(); });
+    $$("[data-col]").forEach(b=>b.onclick=()=>{ T.color=b.dataset.col; upd(); });
+    $$("[data-bcol]").forEach(b=>b.onclick=()=>{ T.boxColor=b.dataset.bcol; if(T.color===T.boxColor) T.color= T.boxColor==="#ffffff"||T.boxColor==="#ffd23f"?"#111111":"#ffffff"; upd(); });
+    $$("[data-box]").forEach(b=>b.onclick=()=>{ T.box=b.dataset.box; if(T.box==="box"&&T.color===T.boxColor) T.color="#ffffff"; upd(); });
+    $("#tSize").oninput=e=>{ T.size=+e.target.value; const ov=$("#txtov"); if(ov) ov.style.fontSize=(T.size)+"cqw"; };
+    $("#tGo").onclick=applyText;
+  }
+}
+function stagePct(e){ const r=$("#stage").getBoundingClientRect(); return { x:Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)), y:Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)) }; }
+function bindStage(){
+  const st=$("#stage");
+  st.onpointerdown=e=>{
+    const p=stagePct(e);
+    if(ST.mode==="txt"){ if(!ST.txt.text) return; ST.drag={dx:p.x-ST.txt.x, dy:p.y-ST.txt.y}; }
+    else ST.drag={x0:p.x,y0:p.y};
+    st.setPointerCapture(e.pointerId); e.preventDefault();
+  };
+  st.onpointermove=e=>{
+    if(!ST.drag) return; const p=stagePct(e);
+    if(ST.mode==="txt"){ ST.txt.x=Math.max(5,Math.min(95,p.x-ST.drag.dx)); ST.txt.y=Math.max(4,Math.min(96,p.y-ST.drag.dy)); const ov=$("#txtov"); if(ov){ ov.style.left=ST.txt.x+"%"; ov.style.top=ST.txt.y+"%"; } }
+    else { const x=Math.min(ST.drag.x0,p.x), y=Math.min(ST.drag.y0,p.y), w=Math.abs(p.x-ST.drag.x0), h=Math.abs(p.y-ST.drag.y0);
+      ST.sel={x,y,w,h}; let b=st.querySelector(".selbox"); if(!b){ b=document.createElement("div"); b.className="selbox"; st.appendChild(b); }
+      Object.assign(b.style,{left:x+"%",top:y+"%",width:w+"%",height:h+"%"}); }
+  };
+  st.onpointerup=()=>{ if(!ST.drag) return; ST.drag=null; if(ST.mode==="ia"){ if(ST.sel&&(ST.sel.w<3||ST.sel.h<3)) ST.sel=null; paintStudio(); } };
+}
+function studioBusy(on, t){ const b=$("#stBusy"); if(!b) return; b.classList.toggle("hidden",!on); if(t) $("#stBusyTxt").textContent=t; ["#stGo","#tGo"].forEach(s=>{ if($(s)) $(s).disabled=on; }); }
+
+const REFINER = `Eres director de arte experto en edición de imágenes con IA. Recibes un anuncio (imagen), la petición del usuario en lenguaje casual, la zona que marcó (si hay) y los datos reales de la campaña.
+Escribe UNA instrucción de edición precisa en español para un modelo que edita imágenes:
+- Qué cambiar exactamente y dónde (describe la ubicación y los elementos visibles con detalle).
+- Cómo debe verse el resultado.
+- Todo texto nuevo entre comillas «» escrito exacto (precios con su moneda tal como se dan, sin decimales inventados).
+- Lista explícita de lo que NO debe cambiar (producto, etiqueta, rostros, textos existentes, composición), salvo lo que pidió cambiar.
+Máximo 110 palabras. Devuelve SOLO JSON: {"instruccion":""}`;
+async function applyAIEdit(){
+  const c=state.c, i=ST.i, ad=c.ads[i]; const raw=($("#stIns").value||"").trim();
+  if(!raw){ toast("Escribe o di qué quieres cambiar"); return; }
+  studioBusy(true,"Entendiendo tu cambio…");
+  try{
+    const zona = ST.sel ? `Zona marcada por el usuario: desde ${Math.round(ST.sel.x)}% a ${Math.round(ST.sel.x+ST.sel.w)}% del ancho y desde ${Math.round(ST.sel.y)}% a ${Math.round(ST.sel.y+ST.sel.h)}% del alto (0% = arriba/izquierda).` : "No marcó zona: aplica el cambio donde corresponda.";
+    let ins=raw;
+    try{ const r=await llm({system:REFINER, user:`PETICIÓN DEL USUARIO: ${raw}\n${zona}\nDATOS DE LA CAMPAÑA: ${datosTxt(c)||"(sin datos)"}`, parts:[{type:"input_image",image_url:await shrink(ad.img,768)}], json:true}); if(r&&r.instruccion) ins=r.instruccion; }catch(e){ if(e.status===401||e.status===429) throw e; }
+    studioBusy(true,"Aplicando tu cambio…");
+    const prod=productPhoto(c,i);
+    let prompt=editPrompt(c,ad,ins,!!prod);
+    let mask=null;
+    if(ST.sel){ prompt+=`\nModifica SOLO la zona transparente de la máscara; fuera de ella la imagen debe quedar idéntica.`; mask=await makeMask(ad.img, ST.sel); }
+    const out=await genEdit(prompt, prod?[ad.img,prod.blob]:[ad.img], mask);
+    pushHistory(ad); ad.img=out; ad.edits=(ad.edits||[]).concat(raw);
+    idb.put(c).catch(()=>{}); paintImage(i); ST.sel=null; studioBusy(false); paintStudio(); toast("Cambio aplicado · si no te gusta, toca Deshacer");
+  }catch(e){ studioBusy(false); $("#stLbl").textContent=friendly(e); }
+}
+async function makeMask(blob, sel){
+  const img=await loadImg(blob); const c=document.createElement("canvas"); c.width=img.width; c.height=img.height; const x=c.getContext("2d");
+  x.fillStyle="#000"; x.fillRect(0,0,c.width,c.height);
+  x.clearRect(sel.x/100*c.width, sel.y/100*c.height, sel.w/100*c.width, sel.h/100*c.height);
+  return new Promise(r=>c.toBlob(r,"image/png"));
+}
+async function genEdit(prompt, inputs, mask){
+  const img0=await loadImg(inputs[0]);
+  const size = img0.width>img0.height ? "1536x1024" : img0.width<img0.height ? "1024x1536" : "1024x1024";
+  const run=async(extra)=>{ const fd=new FormData(); fd.append("model",state.models.image); fd.append("prompt",prompt); fd.append("size",size);
+    if(extra){ fd.append("quality",state.quality); fd.append("input_fidelity","high"); }
+    for(const [k,b] of inputs.entries()) fd.append("image[]", k===0 ? new File([await (await fetch(urlFor(b))).blob()],"anuncio.png",{type:"image/png"}) : await dataURLtoBlob(await shrink(b,1536,"image/png")), "img"+k+".png");
+    if(mask) fd.append("mask", mask, "mask.png");
+    return oa("/images/edits",fd,{form:true}); };
+  let j; try{ j=await run(true); }catch(e){ if(e.status===400 && /fidelity|quality|size|unknown|unrecognized|parameter/i.test(e.message)) j=await run(false); else throw e; }
+  const d=j.data&&j.data[0]; if(!d) throw new Error("La IA no devolvió imagen.");
+  track("imagenes", costImage(j.usage), 1);
+  return d.b64_json ? dataURLtoBlob("data:image/png;base64,"+d.b64_json) : (await fetch(d.url)).blob();
+}
+async function applyText(){
+  const c=state.c, i=ST.i, ad=c.ads[i], T=ST.txt; if(!T.text.trim()){ toast("Escribe el texto"); return; }
+  studioBusy(true,"Poniendo tu texto…");
+  try{ await document.fonts.ready; }catch(e){}
+  const img=await loadImg(ad.img); const W=img.width, H=img.height;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d"); x.drawImage(img,0,0);
+  const px=Math.round(T.size/100*W); x.font=`700 ${px}px "Space Grotesk", Inter, Arial, sans-serif`; x.textAlign="center"; x.textBaseline="middle";
+  const lines=T.text.split("\n"); const lh=px*1.15; const tw=Math.max(...lines.map(l=>x.measureText(l).width));
+  const cx=T.x/100*W, cy=T.y/100*H, th=lh*lines.length;
+  if(T.box==="box"){ const padX=px*0.5, padY=px*0.18; x.fillStyle=T.boxColor; roundRect(x,cx-tw/2-padX, cy-th/2-padY, tw+padX*2, th+padY*2, px*0.35); x.fill(); }
+  else { x.shadowColor="rgba(0,0,0,.55)"; x.shadowBlur=px*0.25; x.shadowOffsetY=px*0.05; }
+  x.fillStyle=T.color; lines.forEach((l,k)=>x.fillText(l, cx, cy-th/2+lh*(k+0.5)));
+  const out=await new Promise(r=>cv.toBlob(r,"image/png"));
+  pushHistory(ad); ad.img=out; idb.put(c).catch(()=>{}); paintImage(i); studioBusy(false); ST.txt.text=""; paintStudio(); toast("Texto agregado · toca Deshacer si quieres quitarlo");
 }
 
 /* ---- Meta: recorrido ---- */
