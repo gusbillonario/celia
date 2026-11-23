@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>Cel.IA · Tus anuncios con IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#050505; --panel:rgba(255,255,255,.035); --line:rgba(255,255,255,.09);
+  --text:#f5f5f5; --muted:#9a9a9a; --dim:#5e5e5e;
+  --o:#ff5a1f; --o2:#ff8a4c; --glow:0 0 24px rgba(255,90,31,.45);
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.5}
+body{min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow-x:hidden}
+h1,h2,h3,.brand{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;margin:0}
+a{color:var(--o2)}
+button{font:inherit;cursor:pointer}
+
+/* fondo: brillo naranja + destellos */
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none}
+.aura{position:fixed;z-index:0;pointer-events:none;width:120vw;height:120vw;max-width:900px;max-height:900px;left:50%;top:-55vw;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(255,90,31,.22) 0%,rgba(255,90,31,.06) 35%,transparent 65%);filter:blur(10px)}
+.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:20px 18px 60px}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:6px 0 18px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.logo{font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:24px;letter-spacing:-.03em;display:flex;align-items:baseline}
+.logo .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--o);margin:0 2px 0 3px;box-shadow:0 0 10px var(--o),0 0 22px rgba(255,90,31,.8);animation:spark 2.6s ease-in-out infinite}
+.logo .ia{color:var(--o);text-shadow:var(--glow)}
+@keyframes spark{0%,100%{box-shadow:0 0 8px var(--o),0 0 18px rgba(255,90,31,.6)}50%{background:#fff;box-shadow:0 0 12px #fff,0 0 28px var(--o)}}
+.byline{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:7px 13px;font-size:13px}
+.ghost:hover{color:var(--text);border-color:rgba(255,255,255,.25)}
+
+.screen{display:none;animation:in .45s ease}
+.screen.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--o2);font-weight:600}
+.title{font-size:clamp(28px,7vw,40px);line-height:1.08;margin:10px 0 10px;font-weight:600}
+.title em{font-style:normal;color:var(--o);text-shadow:var(--glow)}
+.sub{color:var(--muted);margin:0 0 22px}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.card+.card{margin-top:12px}
+
+input[type=text],input[type=password],input[type=number],textarea,select{
+  width:100%;background:rgba(0,0,0,.5);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:14px 15px;font:inherit;outline:none;transition:border-color .2s, box-shadow .2s}
+textarea{min-height:120px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--o);box-shadow:0 0 0 3px rgba(255,90,31,.18)}
+label.small{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:15px 22px;font-weight:600;font-size:16px;color:#0a0a0a;background:linear-gradient(135deg,#ff6a2f,var(--o));box-shadow:var(--glow);transition:transform .15s, box-shadow .2s, opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.35;box-shadow:none}
+.btn.full{width:100%}
+.btn.line{background:transparent;color:var(--text);border:1px solid var(--line);box-shadow:none}
+.btn.sm{padding:9px 14px;font-size:14px}
+
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);border-radius:999px;padding:11px 16px;font-size:15px;transition:all .18s}
+.chip.on{border-color:var(--o);background:rgba(255,90,31,.14);color:#fff;box-shadow:0 0 16px rgba(255,90,31,.25)}
+.chip .em{margin-right:6px}
+
+/* progreso */
+.prog{display:flex;gap:5px;margin:0 0 26px}
+.prog i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.08);transition:background .3s, box-shadow .3s}
+.prog i.done{background:var(--o);box-shadow:0 0 8px rgba(255,90,31,.6)}
+.qnum{font-size:13px;color:var(--dim);margin-bottom:6px;font-family:"Space Grotesk"}
+.q{font-size:clamp(24px,6vw,32px);font-weight:600;line-height:1.15;margin:0 0 8px}
+.help{color:var(--muted);font-size:15px;margin:0 0 18px}
+
+.navbar{margin-top:28px}
+.navbar .in{display:flex;gap:10px;align-items:center}
+.navbar .btn{flex:1}
+.back{width:52px;height:52px;flex:0 0 52px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--text);font-size:20px}
+.skip{background:none;border:none;color:var(--muted);font-size:14px;padding:10px}
+
+/* micrófono */
+.mic{display:flex;align-items:center;gap:12px;margin-top:12px}
+.micbtn{width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,90,31,.5);background:rgba(255,90,31,.08);display:grid;place-items:center;position:relative;transition:all .2s}
+.micbtn svg{width:22px;height:22px;fill:var(--o)}
+.micbtn.rec{background:var(--o);box-shadow:0 0 0 0 rgba(255,90,31,.7);animation:pulse 1.3s infinite}
+.micbtn.rec svg{fill:#000}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.6)}100%{box-shadow:0 0 0 18px rgba(255,90,31,0)}}
+.miclabel{font-size:14px;color:var(--muted)}
+
+/* fotos */
+.drop{border:1px dashed rgba(255,90,31,.45);border-radius:var(--r);padding:26px;text-align:center;color:var(--muted);display:block;cursor:pointer}
+.drop b{color:var(--text);display:block;margin-bottom:4px}
+.thumbs{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.thumb{width:84px;height:84px;border-radius:14px;background-size:cover;background-position:center;border:1px solid var(--line);position:relative}
+.thumb button{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;border:none;background:#fff;color:#000;font-size:13px;line-height:1}
+
+/* resumen */
+.sumrow{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:15px}
+.sumrow:last-child{border:none}
+.sumrow span{color:var(--muted);flex:0 0 108px}
+
+/* cargando */
+.loader{display:grid;place-items:center;text-align:center;padding-top:12vh}
+.orb{width:120px;height:120px;border-radius:50%;position:relative;margin-bottom:34px}
+.orb:before{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:var(--o);border-right-color:rgba(255,90,31,.3);animation:spin 1.1s linear infinite;box-shadow:var(--glow)}
+.orb:after{content:"";position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle,#fff 0%,var(--o) 40%,transparent 72%);animation:breathe 1.8s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes breathe{50%{transform:scale(1.25);opacity:.7}}
+#loadmsg{color:var(--muted);min-height:24px}
+
+/* resultados */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:0 -18px 18px;padding-left:18px;padding-right:18px;scrollbar-width:none;position:sticky;top:0;z-index:4;background:linear-gradient(#050505 75%,rgba(5,5,5,0));padding-top:10px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:9px 15px;font-size:14px}
+.tab.on{color:#000;background:var(--o);border-color:var(--o);box-shadow:var(--glow)}
+.pane{display:none}.pane.on{display:block;animation:in .35s ease}
+.kv{margin:0 0 14px}
+.kv .k{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--o2);margin-bottom:4px;font-weight:600}
+.kv .v{white-space:pre-wrap}
+ul.clean{margin:4px 0 0;padding-left:18px}ul.clean li{margin:4px 0}
+.hero{border:1px solid rgba(255,90,31,.35);background:linear-gradient(135deg,rgba(255,90,31,.12),rgba(255,90,31,.02));}
+
+.ad{padding:0;overflow:hidden}
+.ad .img{aspect-ratio:2/3;background:#0c0c0c;display:grid;place-items:center;position:relative;border-bottom:1px solid var(--line)}
+.ad .img img{width:100%;height:100%;object-fit:cover;display:block}
+.ad .img .st{color:var(--muted);font-size:14px;text-align:center;padding:20px}
+.ad .img .st .mini{width:34px;height:34px;border-radius:50%;border:2px solid transparent;border-top-color:var(--o);animation:spin 1s linear infinite;margin:0 auto 12px}
+.ad .body{padding:16px 18px 18px}
+.tag{display:inline-block;font-size:12px;color:var(--o2);border:1px solid rgba(255,90,31,.35);border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.field{background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;position:relative}
+.field .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.field .txt{white-space:pre-wrap;padding-right:62px}
+.copy{position:absolute;top:10px;right:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);border-radius:999px;font-size:12px;padding:5px 10px}
+.copy.ok{border-color:var(--o);color:var(--o)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0}
+.steps li{counter-increment:s;position:relative;padding:0 0 18px 46px}
+.steps li:before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;border:1px solid var(--o);color:var(--o);display:grid;place-items:center;font-family:"Space Grotesk";font-size:14px;box-shadow:0 0 12px rgba(255,90,31,.3)}
+.steps li b{display:block;margin-bottom:2px}
+.steps li div{color:#cfcfcf;white-space:pre-wrap;font-size:15px}
+.note{font-size:13px;color:var(--muted);margin-top:12px}
+.warn{border-color:rgba(255,200,80,.3);background:rgba(255,200,80,.05)}
+.err{color:#ff8a7a;font-size:14px;margin-top:10px;white-space:pre-wrap}
+.ok{color:#7dffb0}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:600;opacity:0;transition:all .25s;z-index:20;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+details{margin-top:14px}summary{cursor:pointer;color:var(--muted);font-size:14px}
+.hidden{display:none!important}
+ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<div class="aura"></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand" style="flex-direction:column;align-items:flex-start;gap:0"><div class="logo" id="appname">Cel<span class="dot"></span><span class="ia">IA</span></div><div class="byline">Comunidad Celion</div></div>
+    <div>
+      <button class="ghost hidden" id="btnNew">Nueva</button>
+      <button class="ghost" id="btnSettings">Ajustes</button>
+    </div>
+  </header>
+
+  <!-- 0 · BIENVENIDA / API KEY -->
+  <section class="screen" id="s-setup">
+    <div class="eyebrow">Paso único</div>
+    <h1 class="title">Conecta tu <em>IA</em> una sola vez</h1>
+    <p class="sub">Pega tu llave de OpenAI. Se guarda solo en este dispositivo y pagas únicamente lo que uses (centavos por campaña).</p>
+    <div class="card">
+      <label class="small" for="apikey">Tu API key de OpenAI</label>
+      <input type="password" id="apikey" placeholder="sk-..." autocomplete="off">
+      <div id="keymsg" class="err"></div>
+      <button class="btn full" id="btnKey" style="margin-top:14px">Conectar</button>
+    </div>
+    <div class="card">
+      <b>¿No tienes llave? 3 minutos:</b>
+      <ol class="how">
+        <li>Entra a <a href="https://platform.openai.com/signup" target="_blank" rel="noopener">platform.openai.com</a> y crea tu cuenta.</li>
+        <li>Ve a <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener">Billing</a> y agrega saldo (con 5 USD alcanza para varias campañas).</li>
+        <li>Ve a <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">API keys</a> → <i>Create new secret key</i> y cópiala aquí.</li>
+        <li>Si las imágenes no salen, verifica tu organización en <a href="https://platform.openai.com/settings/organization/general" target="_blank" rel="noopener">Settings → Organization</a>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 1 · INICIO -->
+  <section class="screen" id="s-home">
+    <div class="eyebrow">Hola, soy Cel.IA</div>
+    <h1 class="title">Tu campaña,<br><em>lista para pegar.</em></h1>
+    <p class="sub">Tu asistente de anuncios. Respóndeme unas preguntas (puedes hablarme) y te entrego estrategia, imágenes, textos, el paso a paso en Meta y los prompts de tu agente.</p>
+    <button class="btn full" id="btnStart">Empezar</button>
+    <div id="resumeBox" class="hidden" style="margin-top:12px">
+      <button class="btn line full" id="btnResume">Ver mi última campaña</button>
+    </div>
+  </section>
+
+  <!-- 2 · PREGUNTAS -->
+  <section class="screen" id="s-wizard">
+    <div class="prog" id="prog"></div>
+    <div id="qbox"></div>
+  </section>
+
+  <!-- 3 · RESUMEN -->
+  <section class="screen" id="s-review">
+    <div class="eyebrow">Revisa</div>
+    <h2 class="title" style="font-size:30px">¿Todo bien?</h2>
+    <p class="sub">Toca cualquier dato para cambiarlo.</p>
+    <div class="card" id="summary"></div>
+  </section>
+
+  <div class="navbar hidden" id="navbar"><div class="in">
+    <button class="back" id="navBack" aria-label="Atrás">←</button>
+    <button class="skip hidden" id="navSkip">Omitir</button>
+    <button class="btn" id="navNext">Siguiente</button>
+  </div></div>
+
+  <!-- 4 · CARGANDO -->
+  <section class="screen" id="s-loading">
+    <div class="loader">
+      <div class="orb"></div>
+      <h2 style="font-size:24px;margin-bottom:8px">Armando tu campaña</h2>
+      <div id="loadmsg">Analizando tu producto…</div>
+      <div id="loaderr" class="err"></div>
+      <button class="btn line sm hidden" id="btnRetry" style="margin-top:16px">Reintentar</button>
+    </div>
+  </section>
+
+  <!-- 5 · RESULTADOS -->
+  <section class="screen" id="s-results">
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-p="p-plan">Estrategia</button>
+      <button class="tab" data-p="p-ads">Anuncios</button>
+      <button class="tab" data-p="p-meta">En Meta</button>
+      <button class="tab" data-p="p-agent">Agente</button>
+    </div>
+    <div class="pane on" id="p-plan"></div>
+    <div class="pane" id="p-ads"></div>
+    <div class="pane" id="p-meta"></div>
+    <div class="pane" id="p-agent"></div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section class="screen" id="s-settings">
+    <div class="eyebrow">Ajustes</div>
+    <h2 class="title" style="font-size:30px">Tu conexión</h2>
+    <div class="card">
+      <div id="setKeyInfo" class="sub" style="margin:0 0 12px"></div>
+      <button class="btn line full" id="btnChangeKey">Cambiar API key</button>
+    </div>
+    <div class="card">
+      <b>Calidad de imagen</b>
+      <p class="note" style="margin-top:4px">Media es el mejor balance. Alta se ve mejor pero cuesta ~4 veces más.</p>
+      <div class="chips" id="qualityChips" style="margin-top:10px"></div>
+    </div>
+    <details class="card">
+      <summary>Modelos (avanzado)</summary>
+      <label class="small">Texto</label><input type="text" id="mText">
+      <label class="small">Imagen</label><input type="text" id="mImage">
+      <label class="small">Voz a texto</label><input type="text" id="mStt">
+      <p class="note">Se detectan solos al conectar tu llave. Cámbialos solo si sabes lo que haces.</p>
+      <button class="btn line sm" id="btnDetect">Volver a detectar</button>
+    </details>
+    <button class="btn full" id="btnSaveSettings" style="margin-top:16px">Guardar</button>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Cel.IA · V1
+   App de una sola página. Cada usuario usa su propia API key
+   de OpenAI (se guarda solo en su navegador).
+   ========================================================= */
+const API = "https://api.openai.com/v1";
+const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", last:"cl_last", answers:"cl_answers" };
+const store = {
+  get(k,d=null){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k);}catch(e){} }
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const state = {
+  key: store.get(LS.key,""),
+  models: store.get(LS.models,{text:"",image:"",stt:""}),
+  quality: store.get(LS.quality,"medium"),
+  answers: store.get(LS.answers,{}),
+  photos: [],          // File[] fotos propias (no se guardan)
+  refs: [],            // File[] referencias de estilo
+  plan: null,
+  images: {},          // idx -> dataURL
+  step: 0,
+  returnToReview:false
+};
+
+/* ---------------- Fondo: destellos ---------------- */
+(function sky(){
+  const c=$("#sky"), x=c.getContext("2d"); let W,H,stars=[];
+  function size(){ W=c.width=innerWidth*devicePixelRatio; H=c.height=innerHeight*devicePixelRatio; c.style.width=innerWidth+"px"; c.style.height=innerHeight+"px";
+    stars=Array.from({length:Math.round(innerWidth*innerHeight/9000)},()=>({x:Math.random()*W,y:Math.random()*H,r:(Math.random()*1.2+.2)*devicePixelRatio,p:Math.random()*6.28,s:.004+Math.random()*.012,o:Math.random()<.12})); }
+  size(); addEventListener("resize",size);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  (function draw(){ x.clearRect(0,0,W,H);
+    for(const s of stars){ s.p+=s.s; const a=(Math.sin(s.p)+1)/2*.8+.05;
+      x.fillStyle = s.o?`rgba(255,120,60,${a})`:`rgba(255,255,255,${a})`;
+      x.beginPath(); x.arc(s.x,s.y,s.r,0,6.28); x.fill();
+      if(s.r>1.1*devicePixelRatio && a>.75){ x.strokeStyle=`rgba(255,255,255,${(a-.75)*2})`; x.lineWidth=.6*devicePixelRatio;
+        x.beginPath(); x.moveTo(s.x-6*s.r,s.y); x.lineTo(s.x+6*s.r,s.y); x.moveTo(s.x,s.y-6*s.r); x.lineTo(s.x,s.y+6*s.r); x.stroke(); }
+    }
+    if(!reduce) requestAnimationFrame(draw);
+  })();
+})();
+
+/* ---------------- Utilidades UI ---------------- */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));
+  $("#navbar").classList.toggle("hidden", !(id==="s-wizard"||id==="s-review"));
+  $("#btnNew").classList.toggle("hidden", id!=="s-results");
+  scrollTo({top:0,behavior:"instant"});
+}
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),1800); }
+async function copyText(t, btn){
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(_){} ta.remove(); }
+  if(btn){ btn.textContent="Copiado"; btn.classList.add("ok"); setTimeout(()=>{btn.textContent="Copiar";btn.classList.remove("ok");},1500); }
+  else toast("Copiado");
+}
+
+/* ---------------- OpenAI ---------------- */
+async function oa(path, body, {form=false, method="POST"}={}){
+  const r = await fetch(API+path,{method, headers: Object.assign({Authorization:"Bearer "+state.key}, form||method==="GET"?{}:{"Content-Type":"application/json"}), body: method==="GET"?undefined:(form?body:JSON.stringify(body))});
+  let j=null; try{ j=await r.json(); }catch(e){}
+  if(!r.ok){ const m=(j&&j.error&&j.error.message)||("Error "+r.status); const e=new Error(m); e.status=r.status; throw e; }
+  return j;
+}
+function friendly(e){
+  const m=(e&&e.message)||String(e);
+  if(e.status===401) return "Tu API key no es válida o fue eliminada. Revísala en Ajustes.";
+  if(e.status===429 || /quota|billing|insufficient/i.test(m)) return "Tu cuenta de OpenAI no tiene saldo o llegó a su límite. Agrega saldo en Billing.";
+  if(/verif/i.test(m)) return "OpenAI pide verificar tu organización para generar imágenes: Settings → Organization → Verify. Después vuelve a intentar.";
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return location.protocol!=="https:" ? "Estás abriendo el archivo como vista previa y ahí la conexión está bloqueada. Abre la app desde su link (https://…)." : "No hay conexión con OpenAI. Revisa tu internet e intenta de nuevo.";
+  return m;
+}
+function pick(ids, prefs, re, avoid){
+  for(const p of prefs) if(ids.includes(p)) return p;
+  const c = ids.filter(i=>re.test(i) && !(avoid&&avoid.test(i))).sort().reverse();
+  return c[0]||prefs[prefs.length-1];
+}
+async function detectModels(){
+  const j = await oa("/models",null,{method:"GET"});
+  const ids = (j.data||[]).map(m=>m.id);
+  state.models = {
+    text: pick(ids,["gpt-6.1-terra","gpt-6-terra","gpt-5.1-mini","gpt-5-mini","gpt-4.1-mini","gpt-4o-mini"], /^gpt-\d/, /image|audio|realtime|transcribe|tts|search|live|translate|embed|codex/),
+    image: pick(ids,["gpt-image-2.6-flare","gpt-image-2.6","gpt-image-2.5-flare","gpt-image-2","gpt-image-1.5","gpt-image-1","gpt-image-1-mini"], /^gpt-image/),
+    stt: pick(ids,["gpt-4o-mini-transcribe","gpt-4o-transcribe","whisper-1"], /transcribe|whisper/, /live|realtime/)
+  };
+  store.set(LS.models,state.models);
+  return state.models;
+}
+async function genJSON(system, user, imgs=[]){
+  const m=state.models.text;
+  const input = imgs.length ? [{role:"user",content:[{type:"input_text",text:user},...imgs.map(u=>({type:"input_image",image_url:u}))]}] : user;
+  try{
+    const j = await oa("/responses",{model:m, instructions:system, input, text:{format:{type:"json_object"}}});
+    let out = j.output_text;
+    if(!out && Array.isArray(j.output)) out = j.output.flatMap(o=>o.content||[]).filter(c=>c.type==="output_text").map(c=>c.text).join("");
+    return parseJSON(out);
+  }catch(e){
+    if(e.status===401||e.status===429) throw e;
+    const j = await oa("/chat/completions",{model:m, messages:[{role:"system",content:system},{role:"user",content: imgs.length?[{type:"text",text:user},...imgs.map(u=>({type:"image_url",image_url:{url:u}}))]:user}], response_format:{type:"json_object"}});
+    return parseJSON(j.choices[0].message.content);
+  }
+}
+function parseJSON(t){ t=String(t||"").trim().replace(/^```(json)?/,"").replace(/```$/,""); const a=t.indexOf("{"), b=t.lastIndexOf("}"); return JSON.parse(t.slice(a,b+1)); }
+function shrink(file,max=1024,type="image/jpeg"){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const s=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height); res(c.toDataURL(type,.85)); }; img.onerror=rej; img.src=URL.createObjectURL(file); }); }
+async function dataURLtoFile(u,name){ const b=await (await fetch(u)).blob(); return new File([b],name,{type:b.type}); }
+async function transcribe(blob){
+  const ext = /mp4|m4a|aac/.test(blob.type)?"m4a":/ogg/.test(blob.type)?"ogg":/wav/.test(blob.type)?"wav":"webm";
+  const fd=new FormData(); fd.append("file",blob,"voz."+ext); fd.append("model",state.models.stt||"whisper-1"); fd.append("language","es");
+  const j=await oa("/audio/transcriptions",fd,{form:true}); return j.text||"";
+}
+async function genImage(prompt, photo, ref){
+  const run = async (withQuality)=>{
+    if(photo||ref){
+      const fd=new FormData(); fd.append("model",state.models.image); fd.append("prompt",prompt); fd.append("size","1024x1536");
+      if(withQuality) fd.append("quality",state.quality);
+      if(photo) fd.append("image[]",await dataURLtoFile(await shrink(photo,1536,"image/png"),"foto.png"));
+      if(ref) fd.append("image[]",await dataURLtoFile(await shrink(ref,1024,"image/png"),"referencia.png"));
+      return oa("/images/edits",fd,{form:true});
+    }
+    const b={model:state.models.image,prompt,size:"1024x1536",n:1}; if(withQuality) b.quality=state.quality;
+    return oa("/images/generations",b);
+  };
+  let j; try{ j=await run(true); }catch(e){ if(e.status===400 && /quality|size/i.test(e.message)) j=await run(false); else throw e; }
+  const d=j.data&&j.data[0]; if(!d) throw new Error("La IA no devolvió imagen.");
+  return d.b64_json ? "data:image/png;base64,"+d.b64_json : d.url;
+}
+
+/* ---------------- Preguntas ---------------- */
+const TIPOS=[["Producto","📦"],["Servicio","🤝"],["Evento","🎟️"],["Reto de varios días","🔥"],["Oportunidad de negocio","🚀"]];
+const OBJ=[["Que me escriban por WhatsApp","💬"],["Agendar citas","📅"],["Registros a mi evento","🎟️"],["Vender en línea (tengo página web)","🛒"]];
+const STEPS=[
+  {id:"tipo", q:"¿Qué vas a promocionar?", help:"Elige el que más se parezca.", type:"chips", opts:TIPOS},
+  {id:"descripcion", q:"Cuéntame de qué se trata", help:"Qué es, qué incluye, para quién es y qué lo hace diferente. Habla con confianza, como si le explicaras a un amigo.", type:"text", voice:true,
+    ph:a=>({"Producto":"Ej. Un suplemento de colágeno con sabor a mango, para personas que quieren cuidar su piel y articulaciones…","Servicio":"Ej. Escaneo de bienestar de 30 minutos donde te muestro cómo está tu cuerpo…","Evento":"Ej. Conferencia presencial sobre longevidad, IA y negocios digitales…","Reto de varios días":"Ej. Reto de 21 días para mejorar energía y hábitos, con grupo de WhatsApp…","Oportunidad de negocio":"Ej. Invito a emprendedores a conocer un modelo de negocio de salud con herramientas digitales…"}[a.tipo]||"Descríbelo con tus palabras…")},
+  {id:"oferta", q:a=>a.tipo==="Evento"?"Fecha, hora, lugar y costo":"¿Precio, oferta o fecha?", help:"Lo que la gente necesita saber para decidir. Si no aplica, omite.", type:"text", voice:true, optional:true,
+    ph:a=>a.tipo==="Evento"?"Ej. Sábado 6 de diciembre, 10 am, Hotel X en Guadalajara. Entrada gratuita con registro.":"Ej. $650 MXN, promoción 2x1 hasta el domingo…"},
+  {id:"objetivo", q:"¿Qué quieres que haga la gente?", help:"Esto define cómo se configura la campaña en Meta.", type:"chips", opts:OBJ},
+  {id:"ubicacion", q:"¿Dónde quieres anunciarte?", help:"Ciudad, zona o colonias. Si es presencial, piensa en qué tan lejos viajaría tu cliente.", type:"text", voice:true, short:true, chips:["Todo México","Mi ciudad y alrededores (15 km)"], ph:()=>"Ej. Guadalajara y Zapopan"},
+  {id:"publico", q:"¿A quién quieres llegar?", help:"Edad, intereses, situación. Si no sabes, deja que la IA decida.", type:"text", voice:true, optional:true, chips:["No sé, decide tú"], ph:()=>"Ej. Mujeres de 30 a 55 que cuidan su salud y la de su familia"},
+  {id:"presupuesto", q:"¿Cuánto vas a invertir?", help:"Por día. Con poco presupuesto también se puede, solo hay que enfocarlo bien.", type:"budget"},
+  {id:"fotos", q:"¿Tienes fotos o referencias?", help:"Tus fotos hacen el anuncio real. Las referencias (anuncios o estilos que te gustan) le dicen a la IA cómo quieres que se vea. Si no tienes nada, la IA lo crea.", type:"photos", optional:true},
+  {id:"marca", q:"¿Cómo te presentas?", help:"Tu nombre o el de tu marca, y tu WhatsApp para los anuncios y el agente.", type:"brand"},
+  {id:"tono", q:"¿Con qué tono hablamos?", help:"Puedes elegir más de uno.", type:"chips", multi:true, optional:true, opts:[["Cercano","😊"],["Profesional","💼"],["Energético","⚡"],["Inspirador","✨"],["Directo","🎯"]]}
+];
+const val = v => typeof v==="function" ? v(state.answers) : v;
+
+function renderProg(){ $("#prog").innerHTML = STEPS.map((_,i)=>`<i class="${i<=state.step?"done":""}"></i>`).join(""); }
+function micHTML(){ return `<div class="mic"><button class="micbtn" type="button" id="mic" aria-label="Hablar"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button><span class="miclabel" id="miclabel">Toca y habla</span></div>`; }
+
+function renderStep(){
+  const s=STEPS[state.step], a=state.answers; renderProg();
+  let h=`<div class="qnum">${String(state.step+1).padStart(2,"0")} / ${String(STEPS.length).padStart(2,"0")}</div><h2 class="q">${esc(val(s.q))}</h2><p class="help">${esc(s.help)}</p>`;
+  if(s.type==="chips"){
+    const cur = a[s.id]; const sel = v => s.multi ? (cur||[]).includes(v) : cur===v;
+    h+=`<div class="chips">`+s.opts.map(([t,e])=>`<button class="chip ${sel(t)?"on":""}" data-v="${esc(t)}"><span class="em">${e}</span>${esc(t)}</button>`).join("")+`</div>`;
+  } else if(s.type==="text"){
+    if(s.chips) h+=`<div class="chips" style="margin-bottom:12px">`+s.chips.map(t=>`<button class="chip ${a[s.id]===t?"on":""}" data-fill="${esc(t)}">${esc(t)}</button>`).join("")+`</div>`;
+    h+= s.short ? `<input type="text" id="inp" value="${esc(a[s.id]||"")}" placeholder="${esc(val(s.ph))}">` : `<textarea id="inp" placeholder="${esc(val(s.ph))}">${esc(a[s.id]||"")}</textarea>`;
+    if(s.voice) h+=micHTML();
+  } else if(s.type==="budget"){
+    const b=a.presupuesto||{diario:150,dias:7,moneda:"MXN"};
+    h+=`<label class="small" style="margin-top:0">Por día</label><div class="chips" id="bd">`+[100,150,200,300].map(n=>`<button class="chip ${b.diario==n?"on":""}" data-n="${n}">$${n}</button>`).join("")+`</div>
+      <label class="small">O escribe otra cantidad</label><div style="display:flex;gap:8px"><input type="number" id="bdIn" inputmode="numeric" value="${b.diario}"><select id="cur" style="width:110px">${["MXN","USD","COP","PEN","CLP","GTQ"].map(c=>`<option ${b.moneda===c?"selected":""}>${c}</option>`).join("")}</select></div>
+      <label class="small">¿Cuántos días?</label><div class="chips" id="dd">`+[5,7,10,14,30].map(n=>`<button class="chip ${b.dias==n?"on":""}" data-n="${n}">${n} días</button>`).join("")+`</div>
+      <p class="note" id="btot"></p>`;
+  } else if(s.type==="photos"){
+    h+=`<label class="drop" for="ph"><b>📷 Tus fotos</b>Producto, lugar, evento o tú · hasta 3</label><input type="file" id="ph" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="thumbs" id="thumbs"></div>
+      <label class="drop" for="rf" style="margin-top:14px"><b>✦ Referencias de estilo</b>Anuncios o diseños que te gustan · hasta 3</label><input type="file" id="rf" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="thumbs" id="rthumbs"></div>
+      <p class="note">Las referencias solo guían el estilo. La IA no copia marcas ni textos de otros.</p>`;
+  } else if(s.type==="brand"){
+    const m=a.marca||{};
+    h+=`<input type="text" id="bn" placeholder="Tu nombre o marca" value="${esc(m.nombre||"")}">
+      <label class="small">WhatsApp (opcional)</label><input type="text" id="bw" inputmode="tel" placeholder="Ej. 33 1234 5678" value="${esc(m.whatsapp||"")}">`;
+  }
+  $("#qbox").innerHTML=h; bindStep(s); updateNav();
+}
+
+function bindStep(s){
+  const a=state.answers;
+  if(s.type==="chips") document.querySelectorAll("#qbox .chip").forEach(b=>b.onclick=()=>{
+    const v=b.dataset.v;
+    if(s.multi){ const arr=a[s.id]||[]; a[s.id]=arr.includes(v)?arr.filter(x=>x!==v):[...arr,v]; b.classList.toggle("on"); }
+    else { a[s.id]=v; document.querySelectorAll("#qbox .chip").forEach(c=>c.classList.toggle("on",c===b)); setTimeout(next,260); }
+    save(); updateNav();
+  });
+  if(s.type==="text"){
+    const inp=$("#inp"); inp.oninput=()=>{a[s.id]=inp.value; document.querySelectorAll("#qbox [data-fill]").forEach(c=>c.classList.toggle("on",c.dataset.fill===inp.value)); save(); updateNav();};
+    document.querySelectorAll("#qbox [data-fill]").forEach(c=>c.onclick=()=>{ inp.value=c.dataset.fill; inp.oninput(); });
+    if(s.voice) bindMic(inp);
+    if(!("ontouchstart" in window)) setTimeout(()=>inp.focus(),50);
+  }
+  if(s.type==="budget"){
+    const b=a.presupuesto=a.presupuesto||{diario:150,dias:7,moneda:"MXN"};
+    const tot=()=>{ $("#btot").textContent=`Inversión total: $${(b.diario*b.dias).toLocaleString("es-MX")} ${b.moneda} en ${b.dias} días.`; save(); updateNav(); };
+    document.querySelectorAll("#bd .chip").forEach(c=>c.onclick=()=>{b.diario=+c.dataset.n; $("#bdIn").value=b.diario; document.querySelectorAll("#bd .chip").forEach(x=>x.classList.toggle("on",x===c)); tot();});
+    document.querySelectorAll("#dd .chip").forEach(c=>c.onclick=()=>{b.dias=+c.dataset.n; document.querySelectorAll("#dd .chip").forEach(x=>x.classList.toggle("on",x===c)); tot();});
+    $("#bdIn").oninput=e=>{b.diario=+e.target.value||0; document.querySelectorAll("#bd .chip").forEach(x=>x.classList.toggle("on",+x.dataset.n===b.diario)); tot();};
+    $("#cur").onchange=e=>{b.moneda=e.target.value; tot();};
+    tot();
+  }
+  if(s.type==="photos"){
+    const draw=()=>{
+      for(const [arr,box] of [[state.photos,"#thumbs"],[state.refs,"#rthumbs"]]){
+        $(box).innerHTML=arr.map((f,i)=>`<div class="thumb" style="background-image:url(${URL.createObjectURL(f)})"><button data-i="${i}">✕</button></div>`).join("");
+        $(box).querySelectorAll("button").forEach(b=>b.onclick=()=>{arr.splice(+b.dataset.i,1); draw(); updateNav();});
+      }
+      a.fotos=state.photos.length; a.refs=state.refs.length; save(); };
+    $("#ph").onchange=e=>{ for(const f of e.target.files) if(state.photos.length<3) state.photos.push(f); e.target.value=""; draw(); updateNav(); };
+    $("#rf").onchange=e=>{ for(const f of e.target.files) if(state.refs.length<3) state.refs.push(f); e.target.value=""; draw(); updateNav(); };
+    draw();
+  }
+  if(s.type==="brand"){
+    const m=a.marca=a.marca||{};
+    $("#bn").oninput=e=>{m.nombre=e.target.value; save(); updateNav();};
+    $("#bw").oninput=e=>{m.whatsapp=e.target.value; save();};
+  }
+}
+
+function stepValid(s){
+  const v=state.answers[s.id];
+  if(s.optional) return true;
+  if(s.type==="chips") return s.multi ? true : !!v;
+  if(s.type==="text") return !!(v&&v.trim().length>=2);
+  if(s.type==="budget") return v && v.diario>0 && v.dias>0;
+  if(s.type==="brand") return !!(v&&v.nombre&&v.nombre.trim());
+  return true;
+}
+function updateNav(){
+  const rev = $("#s-review").classList.contains("on");
+  if(rev){ $("#navNext").textContent="Armar mi campaña ✦"; $("#navNext").disabled=false; $("#navSkip").classList.add("hidden"); return; }
+  const s=STEPS[state.step]; const empty = s.type==="photos"?!(state.photos.length||state.refs.length) : (s.multi?!(state.answers[s.id]||[]).length : !state.answers[s.id]);
+  $("#navNext").disabled=!stepValid(s);
+  $("#navNext").textContent = state.returnToReview ? "Listo" : (state.step===STEPS.length-1?"Revisar":"Siguiente");
+  $("#navSkip").classList.toggle("hidden", !(s.optional && empty));
+  $("#navSkip").textContent = s.type==="photos" ? "No tengo" : "Omitir";
+}
+function save(){ store.set(LS.answers,state.answers); }
+function next(){
+  if(state.returnToReview){ state.returnToReview=false; return review(); }
+  if(state.step<STEPS.length-1){ state.step++; renderStep(); scrollTo({top:0}); } else review();
+}
+function back(){
+  if($("#s-review").classList.contains("on")){ state.step=STEPS.length-1; show("s-wizard"); renderStep(); return; }
+  if(state.step>0){ state.step--; renderStep(); } else show("s-home");
+}
+$("#navNext").onclick=()=>{ if($("#s-review").classList.contains("on")) generate(); else next(); };
+$("#navBack").onclick=back;
+$("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type!=="photos") state.answers[s.id]= s.multi?[]:""; save(); next(); };
+
+/* ---------------- Voz ---------------- */
+let rec=null, chunks=[];
+function bindMic(inp){
+  const btn=$("#mic"), lbl=$("#miclabel");
+  if(!navigator.mediaDevices||!window.MediaRecorder){ btn.style.display="none"; lbl.textContent="Tu navegador no permite grabar; escribe tu respuesta."; return; }
+  btn.onclick=async()=>{
+    if(rec&&rec.state==="recording"){ rec.stop(); return; }
+    try{
+      const st=await navigator.mediaDevices.getUserMedia({audio:true});
+      chunks=[]; rec=new MediaRecorder(st);
+      rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+      rec.onstop=async()=>{ st.getTracks().forEach(t=>t.stop()); btn.classList.remove("rec"); lbl.textContent="Escribiendo lo que dijiste…";
+        try{ const t=await transcribe(new Blob(chunks,{type:rec.mimeType||"audio/webm"})); inp.value=(inp.value?inp.value.trim()+" ":"")+t.trim(); inp.oninput(); lbl.textContent="Listo. Puedes editarlo o grabar más."; }
+        catch(e){ lbl.textContent=friendly(e); } };
+      rec.start(); btn.classList.add("rec"); lbl.textContent="Escuchando… toca para terminar";
+    }catch(e){ lbl.textContent="Aquí no tengo permiso de micrófono. Usa el micrófono de tu teclado 🎙️ para dictar."; }
+  };
+}
+
+/* ---------------- Resumen ---------------- */
+function review(){
+  const a=state.answers, b=a.presupuesto||{};
+  const rows=[
+    [0,"Promocionas",a.tipo],[1,"Descripción",a.descripcion],[2,"Detalles",a.oferta||"—"],[3,"Objetivo",a.objetivo],
+    [4,"Dónde",a.ubicacion],[5,"Público",a.publico||"Que decida la IA"],[6,"Presupuesto",`$${b.diario} ${b.moneda}/día · ${b.dias} días`],
+    [7,"Fotos",(state.photos.length||state.refs.length)?`${state.photos.length} foto(s) · ${state.refs.length} referencia(s)`:"La IA las crea"],[8,"Marca",(a.marca&&a.marca.nombre)||"—"],[9,"Tono",(a.tono||[]).join(", ")||"Automático"]];
+  $("#summary").innerHTML=rows.map(([i,k,v])=>`<div class="sumrow" data-i="${i}" style="cursor:pointer"><span>${k}</span><div>${esc(String(v||"—").slice(0,140))}${String(v||"").length>140?"…":""}</div></div>`).join("");
+  document.querySelectorAll(".sumrow").forEach(r=>r.onclick=()=>{ state.step=+r.dataset.i; state.returnToReview=true; show("s-wizard"); renderStep(); });
+  show("s-review"); updateNav();
+}
+
+/* ---------------- Cerebro: estrategia ---------------- */
+const SYSTEM = `Eres un estratega senior de Meta Ads y copywriter de respuesta directa para emprendedores de Latinoamérica (redes de mercadeo, bienestar, servicios, eventos y retos) con presupuestos bajos. Escribes en español de México, claro, humano y persuasivo. Tu trabajo: entregar una campaña COMPLETA que la persona solo copie y pegue en su Administrador de anuncios.
+
+REGLAS DE ESTRATEGIA (no negociables):
+- Presupuesto bajo = enfoque. Hasta 150 MXN/día (o equivalente): 1 campaña, 1 conjunto, 3 anuncios. De 151 a 300: 1 campaña, 1 conjunto, 4 anuncios. Más de 300: 1 campaña, 1 conjunto, 5 anuncios. Nunca dividir en varios conjuntos con presupuesto bajo.
+- Público Advantage+ con sugerencias de público; ubicaciones Advantage+. Explica en una línea por qué no conviene segmentar demasiado con poco presupuesto.
+- Objetivo en Meta según lo que quiere el usuario:
+  * WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Las citas las agenda el agente por WhatsApp.
+  * Registros a evento: recomienda WhatsApp (confirmación y recordatorios por el agente). Menciona el formulario instantáneo (objetivo "Clientes potenciales") solo como alternativa.
+  * Vender en línea: objetivo "Ventas" con sitio web SOLO si tiene píxel instalado con eventos de compra; si no lo sabe, recomienda empezar con WhatsApp y explica por qué.
+- Duración: no tocar la campaña los primeros 3 a 4 días (fase de aprendizaje). Para eventos, empezar 7 a 10 días antes.
+- Da reglas de optimización concretas con cifras basadas en su presupuesto (por ejemplo: cuándo apagar un anuncio, cuándo escalar el presupuesto 20%). Marca como estimación cualquier costo esperado.
+
+REGLAS DE CREATIVOS Y COPIES:
+- Cada anuncio con un ÁNGULO realmente distinto (por ejemplo: dolor o problema, resultado deseado, curiosidad, autoridad o experiencia, urgencia real, comunidad o pertenencia, oportunidad). Elige los que mejor funcionen para este tipo de promoción.
+- Texto principal: la primera línea es un hook potente de máximo 125 caracteres; después 2 a 5 líneas cortas; cierre con llamada a la acción a WhatsApp o registro. Emojis con moderación.
+- Título: máximo 40 caracteres. Descripción: máximo 30 caracteres. CTA: usa un botón real de Meta (Enviar mensaje, Más información, Registrarte, Comprar, Reservar).
+- texto_en_imagen: máximo 6 palabras, impactante.
+- prompt_imagen: describe en español una imagen publicitaria vertical concreta: sujeto, escena, luz, encuadre, colores, emoción. Fotografía realista de calidad profesional salvo que convenga gráfico. Personas latinoamericanas cuando aparezcan personas. Sin logos de marcas ajenas. El texto debe ir en la zona central segura.
+
+POLÍTICAS DE META (obligatorias, explícalas si algo del usuario las viola):
+- Nada de atributos personales ("¿Tienes sobrepeso?", "¿Sufres diabetes?", "Tú que estás endeudado").
+- Nada de promesas de cura, resultados médicos garantizados ni fotos de antes y después.
+- Oportunidad de negocio: prohibido prometer ingresos, cifras de ganancias, "hazte rico" o "trabaja desde casa y gana $X". Enfócalo en aprendizaje, evento, comunidad, emprendimiento y tecnología.
+- Salud y bienestar: lenguaje de bienestar y hábitos, no diagnósticos.
+
+NO INVENTES DATOS: si falta un precio, fecha, dirección o dato, escribe [COMPLETA: lo que falta].
+
+AGENTE DE WHATSAPP: la plataforma del usuario pide 2 prompts:
+1) prompt_personalidad: objetivo del agente, personalidad y tono, y el PROCESO paso a paso de la conversación (saludo, 2 o 3 preguntas para entender a la persona, presentar la solución, manejar objeciones, cierre según el objetivo: agendar, registrar o vender, y cuándo pasar con un humano), reglas (mensajes cortos tipo WhatsApp, una pregunta a la vez, no diagnosticar, no prometer resultados ni ingresos) y qué hacer si no sabe algo.
+2) base_conocimiento: documento completo y ordenado con encabezados en MAYÚSCULAS: información del negocio o producto, qué incluye, precios y promociones, fechas y ubicación, a quién va dirigido, beneficios, al menos 12 preguntas frecuentes con respuesta, al menos 6 objeciones con respuesta, proceso de compra o registro, y datos de contacto. Usa [COMPLETA: …] donde falte información.
+
+Devuelve SOLO un objeto JSON válido con esta forma exacta:
+{
+ "resumen": "2 o 3 líneas: la estrategia en lenguaje simple",
+ "estrategia": {
+   "objetivo_meta": "", "por_que": "", "estructura": "", "presupuesto": "", "duracion": "",
+   "publico": "", "ubicaciones": "", "reglas": ["…"], "metricas": ["…"]
+ },
+ "anuncios": [
+   {"angulo":"", "por_que_funciona":"", "texto_principal":"", "titulo":"", "descripcion":"", "cta":"", "texto_en_imagen":"", "prompt_imagen":""}
+ ],
+ "pasos_meta": [ {"titulo":"", "detalle":"qué tocar y qué valor poner exactamente, con los nombres de los botones en español"} ],
+ "mensaje_prellenado": "el mensaje que aparece escrito cuando la persona abre WhatsApp desde el anuncio",
+ "agente": {"prompt_personalidad":"", "base_conocimiento":""},
+ "advertencias": ["riesgos de políticas o datos faltantes, si hay"]
+}`;
+
+function briefFromAnswers(){
+  const a=state.answers, b=a.presupuesto||{};
+  return `DATOS DEL USUARIO
+- Tipo de promoción: ${a.tipo}
+- Descripción: ${a.descripcion}
+- Precio/oferta/fecha/lugar: ${a.oferta||"no indicó"}
+- Objetivo: ${a.objetivo}
+- Ubicación: ${a.ubicacion}
+- Público: ${a.publico||"no indicó, decide tú"}
+- Presupuesto: ${b.diario} ${b.moneda} diarios durante ${b.dias} días (total ${b.diario*b.dias} ${b.moneda})
+- Fotos propias: ${state.photos.length?state.photos.length+" (las imágenes se generarán usándolas como referencia; describe escenas que integren ese producto/persona/lugar real)":"ninguna, la IA crea las imágenes"}
+- Referencias de estilo: ${state.refs.length?state.refs.length+" imagen(es) adjunta(s) después de las fotos propias. Analiza su estilo visual (colores, composición, tipografía, tipo de foto, emoción) y aplícalo a los prompt_imagen SIN copiar marcas, logotipos, personas reconocibles ni textos. En por_que_funciona menciona qué tomaste de la referencia.":"ninguna"}
+- Marca/nombre: ${(a.marca&&a.marca.nombre)||""}
+- WhatsApp: ${(a.marca&&a.marca.whatsapp)||"no indicó"}
+- Tono: ${(a.tono||[]).join(", ")||"elige el mejor"}
+Fecha de hoy: ${new Date().toLocaleDateString("es-MX",{day:"numeric",month:"long",year:"numeric"})}`;
+}
+
+const MSGS=["Analizando tu producto…","Buscando los mejores ángulos…","Escribiendo hooks que detienen el scroll…","Calculando tu presupuesto…","Preparando el paso a paso en Meta…","Entrenando a tu agente…"];
+async function generate(){
+  show("s-loading"); $("#loaderr").textContent=""; $("#btnRetry").classList.add("hidden");
+  let i=0; $("#loadmsg").textContent=MSGS[0]; const t=setInterval(()=>{ i=(i+1)%MSGS.length; $("#loadmsg").textContent=MSGS[i]; },2600);
+  try{
+    if(!state.models.text) await detectModels();
+    const imgs = await Promise.all([...state.photos,...state.refs].map(f=>shrink(f,768).catch(()=>null)));
+    const plan=await genJSON(SYSTEM, briefFromAnswers(), imgs.filter(Boolean));
+    if(!plan||!Array.isArray(plan.anuncios)||!plan.anuncios.length) throw new Error("La respuesta llegó incompleta. Intenta de nuevo.");
+    state.plan=plan; state.images={};
+    store.set(LS.last,{plan,answers:state.answers,date:Date.now()});
+    clearInterval(t); renderResults(); show("s-results"); generateAllImages();
+  }catch(e){ clearInterval(t); $("#loadmsg").textContent="Algo falló"; $("#loaderr").textContent=friendly(e); $("#btnRetry").classList.remove("hidden"); }
+}
+$("#btnRetry").onclick=generate;
+
+/* ---------------- Resultados ---------------- */
+function field(label, text){ return `<div class="field"><div class="lbl">${esc(label)}</div><div class="txt">${esc(text)}</div><button class="copy" data-copy="${esc(text)}">Copiar</button></div>`; }
+function renderResults(){
+  const p=state.plan, e=p.estrategia||{}, a=state.answers;
+  $("#p-plan").innerHTML=`
+    <div class="card hero"><div class="eyebrow">Tu estrategia</div><h2 style="font-size:22px;margin:8px 0 6px">${esc(e.objetivo_meta||"")}</h2><div style="color:#ddd;white-space:pre-wrap">${esc(p.resumen||"")}</div></div>
+    <div class="card">
+      ${[["Por qué este objetivo",e.por_que],["Estructura",e.estructura],["Presupuesto",e.presupuesto],["Duración",e.duracion],["Público",e.publico],["Ubicaciones",e.ubicaciones]].filter(x=>x[1]).map(([k,v])=>`<div class="kv"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join("")}
+    </div>
+    ${(e.reglas||[]).length?`<div class="card"><div class="kv"><div class="k">Reglas para optimizar</div><ul class="clean">${e.reglas.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
+    ${(e.metricas||[]).length?`<div class="card"><div class="kv"><div class="k">Qué medir</div><ul class="clean">${e.metricas.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
+    ${(p.advertencias||[]).length?`<div class="card warn"><div class="kv"><div class="k" style="color:#ffcf6b">Antes de publicar</div><ul class="clean">${p.advertencias.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
+    <button class="btn line full" id="copyAll" style="margin-top:14px">Copiar todo el paquete</button>`;
+
+  $("#p-ads").innerHTML = `<p class="sub" style="margin-bottom:14px">${p.anuncios.length} anuncios, un ángulo distinto cada uno. Súbelos todos al mismo conjunto.</p>` +
+    p.anuncios.map((ad,i)=>`
+    <div class="card ad" id="ad${i}">
+      <div class="img" id="img${i}"><div class="st"><div class="mini"></div>Creando imagen…</div></div>
+      <div class="body">
+        <span class="tag">Anuncio ${i+1} · ${esc(ad.angulo)}</span>
+        <div class="note" style="margin-top:0">${esc(ad.por_que_funciona||"")}</div>
+        ${field("Texto principal",ad.texto_principal)}
+        ${field("Título",ad.titulo)}
+        ${field("Descripción",ad.descripcion)}
+        <div class="field"><div class="lbl">Botón</div><div class="txt">${esc(ad.cta)}</div></div>
+        <div class="row">
+          <button class="btn sm" data-dl="${i}" disabled>Descargar 4:5</button>
+          <button class="btn line sm" data-dl9="${i}" disabled>9:16 historias</button>
+          <button class="btn line sm" data-regen="${i}">Otra versión</button>
+        </div>
+        <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad))}</details>
+      </div>
+    </div>`).join("");
+
+  $("#p-meta").innerHTML=`<div class="card"><ol class="steps">${(p.pasos_meta||[]).map(s=>`<li><b>${esc(s.titulo)}</b><div>${esc(s.detalle)}</div></li>`).join("")}</ol></div>
+    ${p.mensaje_prellenado?`<div class="card"><div class="kv"><div class="k">Mensaje de WhatsApp prellenado</div></div>${field("Pégalo en la plantilla de mensaje",p.mensaje_prellenado)}</div>`:""}
+    <a class="btn full" href="https://adsmanager.facebook.com/" target="_blank" rel="noopener" style="margin-top:14px;text-decoration:none">Abrir Administrador de anuncios ↗</a>`;
+
+  const ag=p.agente||{};
+  $("#p-agent").innerHTML=`<p class="sub">Los 2 prompts para crear tu agente en Celion Connect.</p>
+    <div class="card"><div class="eyebrow">Prompt 1 · Objetivo, personalidad y proceso</div>${field("Pega esto en el campo de comportamiento",ag.prompt_personalidad||"")}</div>
+    <div class="card"><div class="eyebrow">Prompt 2 · Base de conocimiento</div>
+      <p class="note">Descárgalo en PDF y súbelo como base de datos. Antes, completa lo que diga [COMPLETA].</p>
+      <button class="btn full" id="dlPdf" style="margin-top:6px">Descargar PDF</button>
+      <details><summary>Ver texto</summary>${field("Base de conocimiento",ag.base_conocimiento||"")}</details>
+    </div>`;
+
+  document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copyText(b.dataset.copy,b));
+  document.querySelectorAll("[data-dl]").forEach(b=>b.onclick=()=>download(+b.dataset.dl,"4x5"));
+  document.querySelectorAll("[data-dl9]").forEach(b=>b.onclick=()=>download(+b.dataset.dl9,"9x16"));
+  document.querySelectorAll("[data-regen]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.regen));
+  $("#copyAll").onclick=()=>copyText(packageText());
+  $("#dlPdf").onclick=pdf;
+  for(const i in state.images) paintImage(+i);
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t)); document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id===t.dataset.p)); });
+
+function imagePrompt(ad){
+  return `${ad.prompt_imagen}
+
+Formato: anuncio vertical para Facebook e Instagram, estética premium y moderna.${ad.texto_en_imagen?` Incluye este texto exacto en español, grande, legible y bien escrito, en la zona central: "${ad.texto_en_imagen}".`:""} Deja márgenes amplios arriba y abajo (la imagen se recortará a 4:5). Sin marcas de agua.${state.photos.length?" La primera imagen adjunta es el producto, persona o lugar real: mantenlo fiel, no lo deformes.":""}${state.refs.length?` La ${state.photos.length?"segunda":"imagen"} adjunta es solo una referencia de estilo (colores, composición, ambiente): no copies su contenido, marcas, logotipos, personas ni textos.`:""}`;
+}
+async function makeImage(i){
+  const box=$("#img"+i); box.innerHTML=`<div class="st"><div class="mini"></div>Creando imagen…</div>`;
+  setDl(i,false);
+  try{
+    const photo = state.photos.length ? state.photos[i%state.photos.length] : null;
+    const ref = state.refs.length ? state.refs[i%state.refs.length] : null;
+    state.images[i]=await genImage(imagePrompt(state.plan.anuncios[i]), photo, ref);
+    paintImage(i);
+  }catch(e){ box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" onclick="makeImage(${i})">Reintentar</button></div>`; }
+}
+function paintImage(i){ const box=$("#img"+i); if(!box) return; box.innerHTML=`<img alt="Creativo ${i+1}" src="${state.images[i]}">`; setDl(i,true); }
+function setDl(i,on){ const a=document.querySelector(`[data-dl="${i}"]`), b=document.querySelector(`[data-dl9="${i}"]`); if(a)a.disabled=!on; if(b)b.disabled=!on; }
+async function generateAllImages(){
+  const n=state.plan.anuncios.length; let k=0;
+  const worker=async()=>{ while(k<n){ const i=k++; await makeImage(i); } };
+  await Promise.all([worker(),worker()]);
+}
+function download(i, fmt){
+  const src=state.images[i]; if(!src) return;
+  const img=new Image(); img.onload=()=>{
+    const c=document.createElement("canvas"), x=c.getContext("2d");
+    if(fmt==="4x5"){ c.width=1080; c.height=1350; const s=Math.max(1080/img.width,1350/img.height); const w=img.width*s,h=img.height*s; x.drawImage(img,(1080-w)/2,(1350-h)/2,w,h); }
+    else { c.width=1080; c.height=1920; x.fillStyle="#000"; x.fillRect(0,0,1080,1920);
+      x.filter="blur(40px) brightness(.5)"; const sb=Math.max(1080/img.width,1920/img.height); x.drawImage(img,(1080-img.width*sb)/2,(1920-img.height*sb)/2,img.width*sb,img.height*sb); x.filter="none";
+      const s=1080/img.width, h=img.height*s; x.drawImage(img,0,(1920-h)/2,1080,h); }
+    c.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`anuncio-${i+1}-${fmt}.jpg`; document.body.appendChild(a); a.click(); a.remove(); toast("Imagen descargada"); },"image/jpeg",.92);
+  }; img.src=src;
+}
+function packageText(){
+  const p=state.plan, e=p.estrategia||{};
+  let t=`CAMPAÑA · ${state.answers.tipo} · ${(state.answers.marca||{}).nombre||""}\n\n${p.resumen}\n\nESTRATEGIA\nObjetivo: ${e.objetivo_meta}\nEstructura: ${e.estructura}\nPresupuesto: ${e.presupuesto}\nDuración: ${e.duracion}\nPúblico: ${e.publico}\nUbicaciones: ${e.ubicaciones}\nReglas:\n- ${(e.reglas||[]).join("\n- ")}\n\n`;
+  p.anuncios.forEach((a,i)=>{ t+=`ANUNCIO ${i+1} · ${a.angulo}\nTexto principal:\n${a.texto_principal}\nTítulo: ${a.titulo}\nDescripción: ${a.descripcion}\nBotón: ${a.cta}\n\n`; });
+  t+=`PASO A PASO EN META\n`+(p.pasos_meta||[]).map((s,i)=>`${i+1}. ${s.titulo}: ${s.detalle}`).join("\n");
+  if(p.mensaje_prellenado) t+=`\n\nMensaje prellenado de WhatsApp: ${p.mensaje_prellenado}`;
+  t+=`\n\nAGENTE · PROMPT 1\n${(p.agente||{}).prompt_personalidad}\n\nAGENTE · PROMPT 2 (BASE DE CONOCIMIENTO)\n${(p.agente||{}).base_conocimiento}`;
+  return t;
+}
+function pdf(){
+  const txt=((state.plan.agente||{}).base_conocimiento||"").replace(/[^\u0000-ÿ–—‘’“”•]/g,"");
+  if(!window.jspdf){ copyText(txt); toast("No cargó el PDF: copié el texto"); return; }
+  const doc=new window.jspdf.jsPDF({unit:"pt",format:"letter"}); const M=56, W=612-2*M; let y=M;
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.text(`Base de conocimiento · ${(state.answers.marca||{}).nombre||"Agente"}`,M,y); y+=28;
+  for(const line of txt.split("\n")){
+    const head = /^[A-ZÁÉÍÓÚÑ0-9 ,.:¿?()\-]{4,}$/.test(line.trim()) && line.trim()===line.trim().toUpperCase();
+    doc.setFont("helvetica",head?"bold":"normal"); doc.setFontSize(head?12.5:11);
+    const parts=doc.splitTextToSize(line||" ",W);
+    for(const p of parts){ if(y>792-M){ doc.addPage(); y=M; } doc.text(p,M,y); y+= head?18:15; }
+    if(head) y+=2;
+  }
+  doc.save("base-de-conocimiento.pdf"); toast("PDF descargado");
+}
+
+/* ---------------- Ajustes ---------------- */
+function openSettings(){
+  $("#setKeyInfo").textContent = state.key ? `Conectado · llave terminada en …${state.key.slice(-4)}` : "Sin llave conectada";
+  $("#mText").value=state.models.text||""; $("#mImage").value=state.models.image||""; $("#mStt").value=state.models.stt||"";
+  $("#qualityChips").innerHTML=[["low","Rápida"],["medium","Media"],["high","Alta"]].map(([v,t])=>`<button class="chip ${state.quality===v?"on":""}" data-q="${v}">${t}</button>`).join("");
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{ state.quality=b.dataset.q; document.querySelectorAll("[data-q]").forEach(x=>x.classList.toggle("on",x===b)); });
+  settingsFrom = document.querySelector(".screen.on").id; show("s-settings");
+}
+let settingsFrom="s-home";
+$("#btnSettings").onclick=()=> state.key ? openSettings() : show("s-setup");
+$("#btnSaveSettings").onclick=()=>{ state.models={text:$("#mText").value.trim(),image:$("#mImage").value.trim(),stt:$("#mStt").value.trim()}; store.set(LS.models,state.models); store.set(LS.quality,state.quality); toast("Guardado"); show(settingsFrom==="s-settings"?"s-home":settingsFrom); if(settingsFrom==="s-wizard") renderStep(); };
+$("#btnDetect").onclick=async()=>{ try{ await detectModels(); openSettings(); toast("Modelos detectados"); }catch(e){ toast(friendly(e)); } };
+$("#btnChangeKey").onclick=()=>{ $("#apikey").value=""; show("s-setup"); };
+
+$("#btnKey").onclick=async()=>{
+  const k=$("#apikey").value.trim(); const m=$("#keymsg"); m.className="err";
+  if(!/^sk-/.test(k)){ m.textContent="La llave empieza con sk-. Cópiala completa."; return; }
+  $("#btnKey").disabled=true; $("#btnKey").textContent="Conectando…"; m.textContent="";
+  state.key=k;
+  try{ await detectModels(); store.set(LS.key,k); m.className="note ok"; m.textContent="✓ Conectado"; setTimeout(home,500); }
+  catch(e){ state.key=""; m.textContent=friendly(e); }
+  $("#btnKey").disabled=false; $("#btnKey").textContent="Conectar";
+};
+
+/* ---------------- Inicio ---------------- */
+function home(){ $("#resumeBox").classList.toggle("hidden",!store.get(LS.last)); show("s-home"); }
+$("#btnStart").onclick=()=>{ state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
+$("#btnResume").onclick=()=>{ const l=store.get(LS.last); if(!l) return; state.plan=l.plan; state.answers=l.answers||state.answers; state.images={}; renderResults(); show("s-results");
+  state.plan.anuncios.forEach((_,i)=>{ $("#img"+i).innerHTML=`<div class="st">Las imágenes no se guardan en el teléfono.<br><br><button class="btn line sm" onclick="makeImage(${i})">Crear de nuevo</button></div>`; }); };
+$("#btnNew").onclick=()=>{ state.answers={}; state.photos=[]; state.refs=[]; save(); home(); };
+
+state.key ? home() : show("s-setup");
+</script>
+</body>
+</html>
