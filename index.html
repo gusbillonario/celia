@@ -243,6 +243,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 .stage img{display:block;width:100%;pointer-events:none}
 .selbox{position:absolute;border:2px dashed #fff;background:rgba(255,90,31,.25);box-shadow:0 0 0 9999px rgba(0,0,0,.35);pointer-events:none}
 .txtov{position:absolute;transform:translate(-50%,-50%);font-family:"Space Grotesk",Inter,Arial,sans-serif;font-weight:700;line-height:1.15;text-align:center;white-space:nowrap;cursor:move;outline:1px dashed rgba(255,255,255,.6);outline-offset:4px}
+.imgov{position:absolute;transform:translate(-50%,-50%);cursor:move;outline:1px dashed rgba(255,255,255,.6);outline-offset:3px;pointer-events:none}
 .busy{position:absolute;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;align-content:center;gap:10px;color:#fff;font-size:14px}
 .busy .mini{width:34px;height:34px;border-radius:50%;border:2px solid transparent;border-top-color:var(--o);animation:spin 1s linear infinite}
 .swatch{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.25);padding:0}
@@ -400,7 +401,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "3.4";
+const VERSION = "3.5";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -1180,10 +1181,11 @@ function paintStudio(){
   const T=ST.txt, ia=ST.mode==="ia";
   $("#studio").innerHTML=`
    <div class="sthead"><button class="ghost" id="stClose">✕ Cerrar</button><b>Editar anuncio ${ST.i+1}</b><button class="ghost" id="stUndo" ${(ad.history||[]).length?"":"disabled"}>↩ Deshacer</button></div>
-   <div class="seg" style="margin:0 0 12px"><button data-sm="ia" class="${ia?"on":""}">✦ Editar con IA</button><button data-sm="txt" class="${ia?"":"on"}">Aa Agregar texto</button></div>
+   <div class="seg" style="margin:0 0 12px"><button data-sm="ia" class="${ia?"on":""}">✦ IA</button><button data-sm="txt" class="${ST.mode==="txt"?"on":""}">Aa Texto</button><button data-sm="img" class="${ST.mode==="img"?"on":""}">🖼️ Foto</button></div>
    <div class="stage" id="stage"><img id="stImg" src="${urlFor(ad.img)}" alt="">
      ${ia&&ST.sel?`<div class="selbox" style="left:${ST.sel.x}%;top:${ST.sel.y}%;width:${ST.sel.w}%;height:${ST.sel.h}%"></div>`:""}
-     ${!ia&&T.text?`<div class="txtov" id="txtov" style="left:${T.x}%;top:${T.y}%;color:${T.color};font-size:${T.size*0.01*100}cqw;${T.box!=="none"?`background:${T.boxColor};padding:.18em .5em;border-radius:.35em;`:"text-shadow:0 2px 10px rgba(0,0,0,.55);"}">${esc(T.text).replace(/\n/g,"<br>")}</div>`:""}
+     ${ST.mode==="img"&&ST.ov&&ST.ov.url?`<img class="imgov" id="imgov" src="${ST.ov.url}" style="left:${ST.ov.x}%;top:${ST.ov.y}%;width:${ST.ov.w}%;${ST.ov.shadow?"filter:drop-shadow(0 1.2cqw 2cqw rgba(0,0,0,.45))":""}">`:""}
+     ${ST.mode==="txt"&&T.text?`<div class="txtov" id="txtov" style="left:${T.x}%;top:${T.y}%;color:${T.color};font-size:${T.size*0.01*100}cqw;${T.box!=="none"?`background:${T.boxColor};padding:.18em .5em;border-radius:.35em;`:"text-shadow:0 2px 10px rgba(0,0,0,.55);"}">${esc(T.text).replace(/\n/g,"<br>")}</div>`:""}
      <div class="busy hidden" id="stBusy"><div class="mini"></div><span id="stBusyTxt">Aplicando tu cambio…</span></div>
    </div>
    ${ia?`
@@ -1193,14 +1195,14 @@ function paintStudio(){
      <div class="row" style="align-items:center">${micButton("stMic")}<button class="btn" id="stGo" style="flex:1">Aplicar cambio · ≈ ${usdFmt(avgImage()+0.003)} USD</button></div>
      <div class="note" id="stLbl"></div>
      <p class="note">Tip: para textos, precios y fechas usa <b>Agregar texto</b>: sale exacto siempre.</p>`
-   :`
+   :ST.mode==="txt"?`
      <label class="small">Texto</label><textarea id="tIn" style="min-height:70px" placeholder="Ej. $499 MXN">${esc(T.text)}</textarea>
      <div class="chips" style="margin-top:8px">${precioDe(c)?`<button class="chip" data-fillt="${esc(precioDe(c))}">💲 ${esc(precioDe(c))}</button>`:""}${ad.texto_en_imagen?`<button class="chip" data-fillt="${esc(ad.texto_en_imagen)}">${esc(ad.texto_en_imagen)}</button>`:""}</div>
      <label class="small">Color</label><div class="chips">${TXT_COLORS.map(col=>`<button class="swatch ${T.color===col?"on":""}" data-col="${col}" style="background:${col}"></button>`).join("")}</div>
      <label class="small">Tamaño</label><input type="range" id="tSize" min="3" max="20" step="0.5" value="${T.size}" style="width:100%">
      <label class="small">Estilo</label><div class="chips">${[["none","Sin fondo"],["box","Etiqueta"]].map(([k,t])=>`<button class="chip ${T.box===k?"on":""}" data-box="${k}">${t}</button>`).join("")}${T.box==="box"?TXT_COLORS.map(col=>`<button class="swatch ${T.boxColor===col?"on":""}" data-bcol="${col}" style="background:${col}"></button>`).join(""):""}</div>
      <p class="note">Arrastra el texto sobre la imagen para acomodarlo.</p>
-     <button class="btn full" id="tGo" style="margin-top:6px">Poner texto en la imagen</button>`}
+     <button class="btn full" id="tGo" style="margin-top:6px">Poner texto en la imagen</button>`:photoPanel(c)}
   `;
   $("#stClose").onclick=closeStudio; $("#stUndo").onclick=()=>undoImage(ST.i);
   $$("[data-sm]").forEach(b=>b.onclick=()=>{ ST.mode=b.dataset.sm; paintStudio(); });
@@ -1212,6 +1214,7 @@ function paintStudio(){
       if(k==="precio"){ ST.mode="txt"; ST.txt.text=precioDe(c)||"$ MXN"; ST.txt.box="box"; ST.txt.y=78; paintStudio(); if(!precioDe(c)) toast("Escribe tu precio"); return; }
       $("#stIns").value={grande:"Haz el producto más grande y protagonista, sin cambiar su diseño ni su etiqueta",claro:"Haz el fondo más claro y luminoso, sin tocar el producto ni los textos",sintexto:"Quita todo el texto de la imagen y rellena con el fondo"}[k]; });
     $("#stGo").onclick=applyAIEdit;
+  } else if(ST.mode==="img"){ bindPhoto(c);
   } else {
     const upd=()=>{ paintStudio(); };
     $("#tIn").oninput=e=>{ T.text=e.target.value; const ov=$("#txtov"); if(ov) ov.innerHTML=esc(T.text).replace(/\n/g,"<br>"); else upd(); };
@@ -1223,18 +1226,110 @@ function paintStudio(){
     $("#tGo").onclick=applyText;
   }
 }
+/* ---- Cambio 20 · Agregar foto (persona o producto) sin fondo ---- */
+const MP_VER="0.10.14";
+const MP_MODEL="https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite";
+let mpSeg=null;
+async function personCutout(blob){
+  if(!mpSeg){
+    const vision = await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/vision_bundle.mjs`);
+    const files = await vision.FilesetResolver.forVisionTasks(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`);
+    mpSeg = await vision.ImageSegmenter.createFromOptions(files,{baseOptions:{modelAssetPath:MP_MODEL, delegate:"CPU"}, runningMode:"IMAGE", outputConfidenceMasks:true, outputCategoryMask:false});
+  }
+  const src=await loadImg(blob); const max=1200, s=Math.min(1,max/Math.max(src.width,src.height));
+  const c=document.createElement("canvas"); c.width=Math.round(src.width*s); c.height=Math.round(src.height*s); const x=c.getContext("2d"); x.drawImage(src,0,0,c.width,c.height);
+  const res=mpSeg.segment(c); const m=res.confidenceMasks[res.confidenceMasks.length-1]; const mw=m.width, mh=m.height; const conf=m.getAsFloat32Array().slice(); res.close&&res.close();
+  // si el borde sale "persona", la máscara viene invertida
+  let edge=0,n=0; for(let X=0;X<mw;X+=4){ edge+=conf[X]+conf[(mh-1)*mw+X]; n+=2; } const inv = edge/n>0.5;
+  const d=x.getImageData(0,0,c.width,c.height), p=d.data;
+  for(let Y=0;Y<c.height;Y++) for(let X=0;X<c.width;X++){ const mx=Math.min(mw-1,Math.round(X*mw/c.width)), my=Math.min(mh-1,Math.round(Y*mh/c.height)); let a=conf[my*mw+mx]; if(inv) a=1-a; a=Math.max(0,Math.min(1,(a-0.25)/0.5)); p[(Y*c.width+X)*4+3]=Math.round(a*255); }
+  x.putImageData(d,0,0);
+  return trimCanvas(c);
+}
+function trimCanvas(c){
+  const x=c.getContext("2d"), d=x.getImageData(0,0,c.width,c.height).data; let x0=c.width,y0=c.height,x1=0,y1=0;
+  for(let Y=0;Y<c.height;Y++) for(let X=0;X<c.width;X++) if(d[(Y*c.width+X)*4+3]>24){ if(X<x0)x0=X; if(X>x1)x1=X; if(Y<y0)y0=Y; if(Y>y1)y1=Y; }
+  if(x1<=x0||y1<=y0) throw new Error("No encontré a la persona en la foto");
+  const o=document.createElement("canvas"); o.width=x1-x0+1; o.height=y1-y0+1; o.getContext("2d").drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height); return o;
+}
+async function aiCutout(blob, kind){
+  const fd=new FormData(); fd.append("model",state.models.image);
+  fd.append("prompt", kind==="persona" ? "Recorta a la persona de esta foto: conserva EXACTAMENTE su rostro, rasgos, cabello, ropa y colores, sin cambiar nada. Elimina todo el fondo y deja el fondo totalmente transparente." : "Recorta el producto de esta foto: conserva EXACTAMENTE su forma, empaque, etiqueta, logotipo, textos y colores, sin cambiar nada. Elimina todo el fondo y deja el fondo totalmente transparente.");
+  fd.append("background","transparent"); fd.append("output_format","png"); fd.append("input_fidelity","high");
+  fd.append("image[]", await dataURLtoBlob(await shrink(blob,1536,"image/png")), "foto.png");
+  const j=await oa("/images/edits",fd,{form:true}); track("imagenes", costImage(j.usage), 1);
+  const d=j.data&&j.data[0]; const b=d.b64_json? await dataURLtoBlob("data:image/png;base64,"+d.b64_json) : await (await fetch(d.url)).blob();
+  const img=await loadImg(b); const c=document.createElement("canvas"); c.width=img.width; c.height=img.height; c.getContext("2d").drawImage(img,0,0); return trimCanvas(c);
+}
+function cardCanvas(img){ // sin quitar fondo: foto con esquinas redondeadas y borde blanco
+  const s=Math.min(1,1000/Math.max(img.width,img.height)), w=Math.round(img.width*s), h=Math.round(img.height*s), pad=Math.round(Math.max(w,h)*0.025), r=Math.round(Math.max(w,h)*0.06);
+  const c=document.createElement("canvas"); c.width=w+pad*2; c.height=h+pad*2; const x=c.getContext("2d");
+  x.fillStyle="#fff"; roundRect(x,0,0,c.width,c.height,r+pad); x.fill(); x.save(); roundRect(x,pad,pad,w,h,r); x.clip(); x.drawImage(img,pad,pad,w,h); x.restore(); return c;
+}
+async function prepareOverlay(blob, kind, how){
+  // how: auto | ia | none
+  if(how==="none") return cardCanvas(await loadImg(blob));
+  if(how==="ia") return aiCutout(blob, kind);
+  if(kind==="persona"){ try{ return await personCutout(blob); }catch(e){ console.warn("mediapipe",e); return aiCutout(blob,kind); } }
+  const r=cutout(await loadImg(blob)); if(r.cut) return r.canvas;
+  return aiCutout(blob, kind);
+}
+
+function photoPanel(c){
+  const O=ST.ov=ST.ov||{kind:"persona",how:"auto",x:50,y:62,w:45,shadow:true};
+  const mats=(c.material||[]).filter(f=>/^image\//.test(f.type));
+  if(!O.url) return `
+     <label class="small">¿Qué vas a agregar?</label><div class="chips">${[["persona","🙋 Persona"],["producto","📦 Producto"]].map(([k,t])=>`<button class="chip ${O.kind===k?"on":""}" data-ok="${k}">${t}</button>`).join("")}</div>
+     <label class="small">Quitar fondo</label><div class="chips">${[["auto","Automático"],["ia","Con IA (más preciso)"],["none","No quitar"]].map(([k,t])=>`<button class="chip ${O.how===k?"on":""}" data-oh="${k}">${t}</button>`).join("")}</div>
+     <p class="note">${O.how==="auto"?(O.kind==="persona"?"Automático recorta a la persona en tu teléfono, gratis.":"Automático funciona con fondo liso; si no, usa IA."):O.how==="ia"?`La IA recorta con más detalle (≈ ${usdFmt(avgImage())} USD).`:"Se pone la foto con borde redondeado."}</p>
+     <label class="drop" for="ovFile" style="margin-top:10px"><b>📷 Elegir foto</b>De tu galería o cámara</label><input type="file" id="ovFile" accept="image/*" class="hidden">
+     ${mats.length?`<label class="small">O usa una de tus fotos</label><div class="thumbs">${mats.map((f,k)=>`<div class="thumb" data-om="${k}" style="background-image:url(${urlFor(f.blob)});cursor:pointer"></div>`).join("")}</div>`:""}
+     <div class="note" id="ovLbl"></div>`;
+  return `
+     <p class="note" style="margin-top:10px">Arrastra la foto sobre la imagen para acomodarla.</p>
+     <label class="small">Tamaño</label><input type="range" id="ovSize" min="10" max="100" step="1" value="${O.w}" style="width:100%">
+     <div class="chips" style="margin-top:10px"><button class="chip ${O.shadow?"on":""}" id="ovShadow">Sombra</button><button class="chip" id="ovReset">Cambiar foto</button></div>
+     <button class="btn full" id="ovGo" style="margin-top:12px">Poner foto en la imagen</button>
+     <div class="note" id="ovLbl"></div>`;
+}
+function bindPhoto(c){
+  const O=ST.ov;
+  $$("[data-ok]").forEach(b=>b.onclick=()=>{ O.kind=b.dataset.ok; paintStudio(); });
+  $$("[data-oh]").forEach(b=>b.onclick=()=>{ O.how=b.dataset.oh; paintStudio(); });
+  const load=async blob=>{ studioBusy(true, O.how==="ia"?"La IA está recortando…":"Quitando el fondo…");
+    try{ const cv=await prepareOverlay(blob,O.kind,O.how); O.canvas=cv; O.url=cv.toDataURL("image/png"); O.w = cv.width/cv.height < 0.8 ? 34 : 48; O.y = O.kind==="persona"? 60 : 64; studioBusy(false); paintStudio(); }
+    catch(e){ studioBusy(false); $("#ovLbl").textContent=friendly(e)+" · Prueba con 'Con IA' o 'No quitar'."; } };
+  if($("#ovFile")) $("#ovFile").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) load(f); };
+  $$("[data-om]").forEach(t=>t.onclick=()=>{ const f=(c.material||[]).filter(f=>/^image\//.test(f.type))[+t.dataset.om]; if(f){ if(f.kind==="producto") O.kind="producto"; load(f.blob); } });
+  if($("#ovSize")) $("#ovSize").oninput=e=>{ O.w=+e.target.value; const o=$("#imgov"); if(o) o.style.width=O.w+"%"; };
+  if($("#ovShadow")) $("#ovShadow").onclick=()=>{ O.shadow=!O.shadow; paintStudio(); };
+  if($("#ovReset")) $("#ovReset").onclick=()=>{ O.url=null; O.canvas=null; paintStudio(); };
+  if($("#ovGo")) $("#ovGo").onclick=applyPhoto;
+}
+async function applyPhoto(){
+  const c=state.c, i=ST.i, ad=c.ads[i], O=ST.ov; if(!O||!O.canvas) return;
+  studioBusy(true,"Poniendo tu foto…");
+  const img=await loadImg(ad.img); const W=img.width, H=img.height;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d"); x.drawImage(img,0,0);
+  const w=O.w/100*W, h=w*O.canvas.height/O.canvas.width, px=O.x/100*W-w/2, py=O.y/100*H-h/2;
+  if(O.shadow){ x.save(); x.shadowColor="rgba(0,0,0,.45)"; x.shadowBlur=W*0.02; x.shadowOffsetY=W*0.012; x.drawImage(O.canvas,px,py,w,h); x.restore(); } else x.drawImage(O.canvas,px,py,w,h);
+  const out=await new Promise(r=>cv.toBlob(r,"image/png"));
+  pushHistory(ad); ad.img=out; idb.put(c).catch(()=>{}); paintImage(i); studioBusy(false); ST.ov=null; paintStudio(); toast("Foto agregada · toca Deshacer si quieres quitarla");
+}
 function stagePct(e){ const r=$("#stage").getBoundingClientRect(); return { x:Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)), y:Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)) }; }
 function bindStage(){
   const st=$("#stage");
   st.onpointerdown=e=>{
     const p=stagePct(e);
     if(ST.mode==="txt"){ if(!ST.txt.text) return; ST.drag={dx:p.x-ST.txt.x, dy:p.y-ST.txt.y}; }
+    else if(ST.mode==="img"){ if(!ST.ov||!ST.ov.url) return; ST.drag={dx:p.x-ST.ov.x, dy:p.y-ST.ov.y}; }
     else ST.drag={x0:p.x,y0:p.y};
     st.setPointerCapture(e.pointerId); e.preventDefault();
   };
   st.onpointermove=e=>{
     if(!ST.drag) return; const p=stagePct(e);
-    if(ST.mode==="txt"){ ST.txt.x=Math.max(5,Math.min(95,p.x-ST.drag.dx)); ST.txt.y=Math.max(4,Math.min(96,p.y-ST.drag.dy)); const ov=$("#txtov"); if(ov){ ov.style.left=ST.txt.x+"%"; ov.style.top=ST.txt.y+"%"; } }
+    if(ST.mode==="img"){ ST.ov.x=Math.max(0,Math.min(100,p.x-ST.drag.dx)); ST.ov.y=Math.max(0,Math.min(100,p.y-ST.drag.dy)); const o=$("#imgov"); if(o){ o.style.left=ST.ov.x+"%"; o.style.top=ST.ov.y+"%"; } }
+    else if(ST.mode==="txt"){ ST.txt.x=Math.max(5,Math.min(95,p.x-ST.drag.dx)); ST.txt.y=Math.max(4,Math.min(96,p.y-ST.drag.dy)); const ov=$("#txtov"); if(ov){ ov.style.left=ST.txt.x+"%"; ov.style.top=ST.txt.y+"%"; } }
     else { const x=Math.min(ST.drag.x0,p.x), y=Math.min(ST.drag.y0,p.y), w=Math.abs(p.x-ST.drag.x0), h=Math.abs(p.y-ST.drag.y0);
       ST.sel={x,y,w,h}; let b=st.querySelector(".selbox"); if(!b){ b=document.createElement("div"); b.className="selbox"; st.appendChild(b); }
       Object.assign(b.style,{left:x+"%",top:y+"%",width:w+"%",height:h+"%"}); }
