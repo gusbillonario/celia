@@ -387,7 +387,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "3.0";
+const VERSION = "3.1";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -517,15 +517,23 @@ async function detectModels(){
 function outText(j){ if(j.output_text) return j.output_text; if(Array.isArray(j.output)) return j.output.flatMap(o=>o.content||[]).filter(c=>c.type==="output_text").map(c=>c.text).join(""); if(j.choices) return j.choices[0].message.content; return ""; }
 function parseJSON(t){ t=String(t||"").trim().replace(/^```(json)?/,"").replace(/```$/,""); const a=t.indexOf("{"), b=t.lastIndexOf("}"); return JSON.parse(t.slice(a,b+1)); }
 /* parts: [{type:"input_image",image_url}|{type:"input_file",filename,file_data}] */
-function toChatParts(text, parts){ return [{type:"text",text}, ...parts.map(p=>p.type==="input_image"?{type:"image_url",image_url:{url:p.image_url}}:{type:"file",file:{filename:p.filename,file_data:p.file_data}})]; }
+function toChatParts(text, parts){ return [{type:"text",text}, ...parts.map(p=> p.type==="input_image"?{type:"image_url",image_url:{url:p.image_url}} : p.type==="input_text"?{type:"text",text:p.text} : {type:"file",file:{filename:p.filename,file_data:p.file_data}})]; }
 async function llm({system, messages, user, parts=[], json=false, kind="texto"}){
   const m=state.models.text;
-  const input = messages ? messages.map(x=>({role:x.role,content:x.content})) : (parts.length ? [{role:"user",content:[{type:"input_text",text:user},...parts]}] : user);
-  let j;
-  try{ const b={model:m, instructions:system, input}; if(json) b.text={format:{type:"json_object"}}; j=await oa("/responses",b); }
-  catch(e){ if(e.status===401||e.status===429) throw e;
-    const msgs=[{role:"system",content:system}, ...(messages? messages.map(x=>({role:x.role,content:x.content})) : [{role:"user",content: parts.length?toChatParts(user,parts):user}])];
-    const b={model:m, messages:msgs}; if(json) b.response_format={type:"json_object"}; j=await oa("/chat/completions",b); }
+  const call = async (ps)=>{ const input = messages ? messages.map(x=>({role:x.role,content:x.content})) : (ps.length ? [{role:"user",content:[{type:"input_text",text:user},...ps]}] : user);
+    const b={model:m, instructions:system, input}; if(json) b.text={format:{type:"json_object"}}; return oa("/responses",b); };
+  let j, first;
+  try{ j=await call(parts); }
+  catch(e){ first=e; if(e.status===401||e.status===429) throw e; console.warn("responses:",e.message);
+    // 1) reintento sin PDFs (a veces el modelo no acepta archivos)
+    if(parts.some(p=>p.type==="input_file")){ try{ j=await call(parts.filter(p=>p.type!=="input_file")); }catch(e2){ console.warn("responses sin pdf:",e2.message); } }
+    // 2) respaldo: chat completions
+    if(!j){ try{
+      const ps=parts.filter(p=>p.type!=="input_file");
+      const msgs=[{role:"system",content:system}, ...(messages? messages.map(x=>({role:x.role,content:x.content})) : [{role:"user",content: ps.length?toChatParts(user,ps):user}])];
+      const b={model:m, messages:msgs}; if(json) b.response_format={type:"json_object"}; j=await oa("/chat/completions",b);
+    }catch(e3){ console.warn("chat:",e3.message); throw first; } }
+  }
   track(kind, costText(j.usage));
   const t=outText(j); return json ? parseJSON(t) : t.trim();
 }
