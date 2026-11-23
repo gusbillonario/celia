@@ -387,7 +387,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "3.2";
+const VERSION = "3.3";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -579,7 +579,7 @@ function bindVoice(btn, setLabel, onText){
 
 /* ---------------- Preguntas ---------------- */
 const TIPOS=[["Producto","📦"],["Servicio","🤝"],["Evento","🎟️"],["Reto","🔥"],["Oportunidad de negocio","🚀"],["Otro","✨"]];
-const OBJ=[["Que me escriban por WhatsApp","💬"],["Agendar citas","📅"],["Registros a mi evento","🎟️"],["Vender en línea (tengo página web)","🛒"]];
+const OBJ=[["Que me escriban por WhatsApp","💬"],["Agendar citas","📅"],["Registros a mi evento","🎟️"],["Vender en mi tienda en línea","🛒"]];
 const KINDS={auto:"Detectar",producto:"Producto",etiqueta:"Etiqueta",flyer:"Flyer",persona:"Persona",lugar:"Lugar",doc:"Documento"};
 const KIND_CYCLE=["producto","etiqueta","flyer","persona","lugar"];
 /* Datos clave por tipo: [campo, etiqueta, ejemplo]  ·  fotos: [tipo, etiqueta, tip] */
@@ -604,6 +604,7 @@ const STEPS=[
     ph:a=>({"Producto":"Ej. MUNO T, una infusión herbal de Celion que apoya la salud del hígado y la digestión…","Servicio":"Ej. Escaneo de bienestar de 30 minutos donde te muestro cómo está tu cuerpo…","Evento":"Ej. Conferencia presencial sobre longevidad, IA y negocios digitales…","Reto":"Ej. Reto de 21 días para mejorar energía y hábitos, con grupo de WhatsApp…","Oportunidad de negocio":"Ej. Invito a emprendedores a conocer un modelo de negocio de salud con herramientas digitales…"}[a.tipo]||"Ej. Quiero promocionar… para… y que la gente…")},
   {id:"detalles", q:a=>a.tipo==="Evento"?"Los datos de tu evento":a.tipo==="Producto"?"Los datos de tu producto":"Los datos clave", help:"Llena lo que tengas; lo que no, déjalo vacío. Entre más me des, mejor vende tu anuncio y tu agente.", type:"details", optional:true},
   {id:"objetivo", q:"¿Qué quieres que haga la gente?", help:"Esto define cómo se configura la campaña en Meta.", type:"chips", opts:OBJ},
+  {id:"tienda", q:"Tu tienda en línea", help:"Para mandar a la gente directo a comprar.", type:"store", when:a=>/tienda/i.test(a.objetivo||"")},
   {id:"ubicacion", q:"¿Dónde quieres anunciarte?", help:"Ciudad, zona o colonias. Si es presencial, piensa en qué tan lejos viajaría tu cliente.", type:"text", voice:true, short:true, chips:["Todo México","Mi ciudad y alrededores (15 km)"], ph:()=>"Ej. Guadalajara y Zapopan"},
   {id:"publico", q:"¿A quién quieres llegar?", help:"Edad, intereses, situación. Si no sabes, deja que la IA decida.", type:"text", voice:true, optional:true, chips:["No sé, decide tú"], ph:()=>"Ej. Mujeres de 30 a 55 que cuidan su salud y la de su familia"},
   {id:"presupuesto", q:"¿Cuánto vas a invertir?", help:"Por día. Con poco presupuesto también se puede, solo hay que enfocarlo bien.", type:"budget"},
@@ -657,6 +658,12 @@ function renderStep(){
         <div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="libQ" value="${esc(guessKeyword())}" placeholder="¿Qué buscar?"><a class="btn sm" id="libGo" target="_blank" rel="noopener" href="#" style="text-decoration:none;flex:0 0 auto">Abrir ↗</a></div>
       </details>`;
     if(hasProductPhoto()) h+=`<div class="card" style="margin-top:12px"><label class="switch"><input type="checkbox" id="exact" ${exactOn()?"checked":""}><span class="tg"></span><span><b>Pegar mi producto encima (opcional)</b><br><span class="note" style="margin:0">Úsalo solo si la IA te cambia el producto: crea el fondo y la app coloca tu foto real encima.</span></span></label></div>`;
+  } else if(s.type==="store"){
+    const t=a.tienda=a.tienda||{pixel:"No sé",modo:"Solo tienda"};
+    h+=`<label class="small" style="margin-top:0">Link de tu tienda</label><input type="text" id="stLink" inputmode="url" placeholder="Ej. tutienda.com, tu link de oficina virtual o Mercado Libre" value="${esc(t.link||"")}">
+      <label class="small">¿Tu tienda tiene píxel de Meta instalado?</label><div class="chips" id="stPx">${["Sí","No","No sé"].map(v=>`<button class="chip ${t.pixel===v?"on":""}" data-v="${v}">${v}</button>`).join("")}</div>
+      <p class="note">Si es la tienda de tu compañía (link replicado), casi siempre es "No".</p>
+      <label class="small">¿También quieres recibir mensajes por WhatsApp?</label><div class="chips" id="stMd">${["Solo tienda","Tienda + WhatsApp"].map(v=>`<button class="chip ${t.modo===v?"on":""}" data-v="${v}">${v}</button>`).join("")}</div>`;
   } else if(s.type==="brand"){
     const m=a.marca||{};
     h+=`<input type="text" id="bn" placeholder="Tu nombre" value="${esc(m.nombre||"")}">
@@ -717,6 +724,11 @@ function bindStep(s){
     $("#bc").oninput=e=>{m.compania=e.target.value; save();};
     $("#bw").oninput=e=>{m.whatsapp=e.target.value; save();};
   }
+  if(s.type==="store"){ const t=a.tienda=a.tienda||{pixel:"No sé",modo:"Solo tienda"};
+    $("#stLink").oninput=e=>{ t.link=e.target.value; save(); updateNav(); };
+    $$("#stPx .chip").forEach(b=>b.onclick=()=>{ t.pixel=b.dataset.v; $$("#stPx .chip").forEach(x=>x.classList.toggle("on",x===b)); save(); });
+    $$("#stMd .chip").forEach(b=>b.onclick=()=>{ t.modo=b.dataset.v; $$("#stMd .chip").forEach(x=>x.classList.toggle("on",x===b)); save(); });
+    if(!t.pixel) t.pixel="No sé"; if(!t.modo) t.modo="Solo tienda"; save(); }
   if(s.type==="agentq"){ const g=a.agente=a.agente||{}; $$("[data-ag]").forEach(i=>i.oninput=()=>{ g[i.dataset.ag]=i.value; save(); }); }
 }
 function stepValid(s){
@@ -726,6 +738,7 @@ function stepValid(s){
   if(s.type==="text") return !!(v&&v.trim().length>=2) || (s.attach && state.files.material.length>0);
   if(s.type==="budget") return v && v.diario>0 && v.dias>0;
   if(s.type==="brand") return !!(v&&v.nombre&&v.nombre.trim());
+  if(s.type==="store") return !!(v&&v.link&&v.link.trim().length>3);
   return true;
 }
 function stepEmpty(s){
@@ -744,8 +757,9 @@ function updateNav(){
   $("#navSkip").textContent = s.type==="style" ? "No tengo" : "Omitir";
 }
 function save(){ store.set(LS.answers,state.answers); }
-function next(){ if(state.returnToReview){ state.returnToReview=false; return review(); } if(state.step<STEPS.length-1){ state.step++; renderStep(); scrollTo({top:0}); } else review(); }
-function back(){ if($("#s-review").classList.contains("on")){ state.step=STEPS.length-1; show("s-wizard"); renderStep(); return; } if(state.step>0){ state.step--; renderStep(); } else home(); }
+const stepOn = i => !STEPS[i].when || STEPS[i].when(state.answers);
+function next(){ if(state.returnToReview){ state.returnToReview=false; return review(); } let n=state.step+1; while(n<STEPS.length && !stepOn(n)) n++; if(n<STEPS.length){ state.step=n; renderStep(); scrollTo({top:0}); } else review(); }
+function back(){ if($("#s-review").classList.contains("on")){ let n=STEPS.length-1; while(n>0&&!stepOn(n)) n--; state.step=n; show("s-wizard"); renderStep(); return; } let n=state.step-1; while(n>=0 && !stepOn(n)) n--; if(n>=0){ state.step=n; renderStep(); } else home(); }
 $("#navNext").onclick=()=>{ if($("#s-review").classList.contains("on")) prepare(); else next(); };
 $("#navBack").onclick=back;
 $("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type==="chips"||s.type==="text") state.answers[s.id]= s.multi?[]:""; save(); next(); };
@@ -753,9 +767,11 @@ $("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type==="chips"||s.ty
 function review(){
   const a=state.answers, b=a.presupuesto||{}, m=a.marca||{}, d=a.detalles||{}, g=a.agente||{};
   const det=Object.entries(d).filter(([k,v])=>v&&v.trim()).map(([k,v])=>v).join(" · ");
-  const rows=[[0,"Promocionas",a.tipo],[1,"Descripción",(a.descripcion||"")+(state.files.material.length?`\n📎 ${state.files.material.length} archivo(s)`:"")],[2,"Datos",det||"—"],[3,"Objetivo",a.objetivo],
-    [4,"Dónde",a.ubicacion],[5,"Público",a.publico||"Que decida la IA"],[6,"Presupuesto",`$${b.diario} ${b.moneda}/día · ${b.dias} días`],
-    [7,"Estilo",(state.files.refs.length?state.files.refs.length+" referencia(s)":"Libre")+(exactOn()?" · producto pegado encima":"")],[8,"Marca",[m.nombre,m.compania].filter(Boolean).join(" · ")||"—"],[9,"Agente",[g.nombre,g.cierre].filter(Boolean).join(" · ")||"Automático"],[10,"Tono",(a.tono||[]).join(", ")||"Automático"]];
+  const I=id=>STEPS.findIndex(x=>x.id===id); const t=a.tienda||{};
+  const rows=[[I("tipo"),"Promocionas",a.tipo],[I("descripcion"),"Descripción",(a.descripcion||"")+(state.files.material.length?`\n📎 ${state.files.material.length} archivo(s)`:"")],[I("detalles"),"Datos",det||"—"],[I("objetivo"),"Objetivo",a.objetivo],
+    ...(stepOn(I("tienda"))?[[I("tienda"),"Tienda",[t.link,t.pixel&&("píxel: "+t.pixel),t.modo].filter(Boolean).join(" · ")]]:[]),
+    [I("ubicacion"),"Dónde",a.ubicacion],[I("publico"),"Público",a.publico||"Que decida la IA"],[I("presupuesto"),"Presupuesto",`$${b.diario} ${b.moneda}/día · ${b.dias} días`],
+    [I("estilo"),"Estilo",(state.files.refs.length?state.files.refs.length+" referencia(s)":"Libre")+(exactOn()?" · producto pegado encima":"")],[I("marca"),"Marca",[m.nombre,m.compania].filter(Boolean).join(" · ")||"—"],[I("agente"),"Agente",[g.nombre,g.cierre].filter(Boolean).join(" · ")||"Automático"],[I("tono"),"Tono",(a.tono||[]).join(", ")||"Automático"]];
   $("#summary").innerHTML=rows.map(([i,k,v])=>`<div class="sumrow" data-i="${i}" style="cursor:pointer"><span>${k}</span><div style="white-space:pre-wrap">${esc(String(v||"—").slice(0,160))}${String(v||"").length>160?"…":""}</div></div>`).join("");
   $$(".sumrow").forEach(r=>r.onclick=()=>{ state.step=+r.dataset.i; state.returnToReview=true; show("s-wizard"); renderStep(); });
   show("s-review"); updateNav();
@@ -798,7 +814,12 @@ const SYSTEM = `Eres un estratega senior de Meta Ads y copywriter de respuesta d
 ESTRATEGIA:
 - Recomienda la cantidad de anuncios según presupuesto: hasta 150 MXN/día (o equivalente) 3 anuncios; 151 a 300: 4; más de 300: 5. Todo en 1 campaña y 1 conjunto. Explica en una línea por qué esa cantidad (campo por_que_cantidad).
 - Público Advantage+ con sugerencias; ubicaciones Advantage+.
-- WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Registros a evento: recomienda WhatsApp; formulario instantáneo solo como alternativa. Vender en línea: "Ventas" con sitio web solo si tiene píxel; si no lo sabe, recomienda WhatsApp.
+- WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Registros a evento: recomienda WhatsApp; formulario instantáneo solo como alternativa.
+- TIENDA EN LÍNEA (objetivo "Vender en mi tienda en línea"): respeta que quiere vender en su tienda, NO lo mandes a WhatsApp.
+  * Con píxel ("Sí"): campaña "Ventas", ubicación de la conversión "Sitio web", evento de conversión "Compra", botón "Comprar".
+  * Sin píxel o "No sé": campaña "Tráfico", ubicación del tráfico "Sitio web", meta "Maximizar el número de vistas de la página de destino", botón "Comprar" o "Más información". Explica en una línea por qué y cómo instalar el píxel si su tienda lo permite (las tiendas replicadas de compañías normalmente no lo permiten).
+  * Copies, CTA y pasos_meta dirigidos al link de la tienda (inclúyelo en "valor" del paso de URL del sitio web). No menciones WhatsApp salvo que el modo sea "Tienda + WhatsApp" (entonces ofrece ambas vías). mensaje_prellenado: "" si es solo tienda.
+  * Agente: en modo solo tienda es un asistente de dudas y postventa (cómo comprar en el link, pagos, envíos, seguimiento del pedido) que siempre lleva al link; en modo mixto también vende por WhatsApp.
 - No tocar la campaña los primeros 3 a 4 días. Para eventos, empezar 7 a 10 días antes.
 - Reglas de optimización con cifras basadas en su presupuesto. Marca como estimación los costos esperados.
 
@@ -859,7 +880,8 @@ function briefFrom(c){
 - Datos clave:
 ${detLines||"  · (no dio datos extra)"}
 ${(a.extra||[]).length? "- Respuestas a preguntas de la IA:\n"+a.extra.map(x=>`  · ${x.q} → ${x.a}`).join("\n") : ""}
-- Objetivo: ${a.objetivo}
+- Objetivo: ${a.objetivo}${/tienda/i.test(a.objetivo||"")&&a.tienda? `
+- Tienda en línea: link ${a.tienda.link||"[COMPLETA: link]"} · píxel de Meta: ${a.tienda.pixel||"No sé"} · modo: ${a.tienda.modo||"Solo tienda"}`:""}
 - Ubicación: ${a.ubicacion}
 - Público: ${a.publico||"no indicó, decide tú"}
 - Presupuesto: ${b.diario} ${b.moneda} diarios durante ${b.dias} días (total ${b.diario*b.dias} ${b.moneda})
