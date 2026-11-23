@@ -133,7 +133,7 @@ ul.clean{margin:4px 0 0;padding-left:18px}ul.clean li{margin:4px 0}
 .ad .body{padding:16px 18px 18px}
 .tag{display:inline-block;font-size:12px;color:var(--o2);border:1px solid rgba(255,90,31,.35);border-radius:999px;padding:3px 10px;margin-bottom:8px}
 .field{background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;position:relative}
-.field .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.field .lbl{padding-right:64px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
 .field .txt{white-space:pre-wrap;padding-right:62px}
 .copy{position:absolute;top:10px;right:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);border-radius:999px;font-size:12px;padding:5px 10px}
 .copy.ok{border-color:var(--o);color:var(--o)}
@@ -153,6 +153,90 @@ details{margin-top:14px}summary{cursor:pointer;color:var(--muted);font-size:14px
 .hidden{display:none!important}
 ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 </style>
+<style>
+/* ===== v2 ===== */
+.files{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.fileitem{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:14px}
+.fileitem .pv{width:40px;height:40px;border-radius:8px;background:#111 center/cover;flex:0 0 40px;display:grid;place-items:center;font-size:18px}
+.fileitem .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fileitem button{background:none;border:none;color:var(--muted);font-size:16px}
+.attach{display:inline-flex;align-items:center;gap:8px;margin-top:14px;border:1px dashed rgba(255,90,31,.5);color:var(--text);border-radius:999px;padding:10px 16px;font-size:14px;cursor:pointer}
+.switch{display:flex;align-items:flex-start;gap:14px;cursor:pointer}
+.switch input{display:none}
+.switch .tg{flex:0 0 48px;height:28px;border-radius:999px;background:rgba(255,255,255,.12);position:relative;transition:background .2s;margin-top:2px}
+.switch .tg:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch input:checked + .tg{background:var(--o);box-shadow:var(--glow)}
+.switch input:checked + .tg:after{transform:translateX(20px)}
+.simple{list-style:none;margin:12px 0 0;padding:0}
+.simple li{display:flex;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.07);font-size:16px}
+.simple li:first-child{border:none}
+.simple li i{font-style:normal;color:var(--o);font-family:"Space Grotesk";font-weight:700;flex:0 0 22px}
+.costpill{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 12px;margin-bottom:12px}
+.costpill b{color:var(--text);font-weight:600}
+.seg{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:14px}
+.seg button{flex:1;border:none;background:none;color:var(--muted);border-radius:999px;padding:9px;font-size:14px}
+.seg button.on{background:var(--o);color:#000;font-weight:600}
+/* simulación Meta */
+.mock{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0d0d0f;margin-bottom:14px}
+.mock .bar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:#16161a;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.mock .bar i{width:8px;height:8px;border-radius:50%;background:#333;display:inline-block}
+.mock .bar span{margin-left:8px}
+.mock .scr{padding:14px}
+.mock .scr h4{margin:0 0 12px;font-family:"Space Grotesk";font-size:15px}
+.mock .sk{height:12px;border-radius:6px;background:rgba(255,255,255,.07);margin:9px 0}
+.mock .sk.s{width:55%}.mock .sk.m{width:78%}
+.mock .hit{position:relative;margin:14px 0;padding:12px 14px;border-radius:10px;border:2px solid var(--o);background:rgba(255,90,31,.1);font-weight:600;animation:ring 1.6s infinite}
+.mock .hit small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-bottom:2px}
+.mock .hand{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20px}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(255,90,31,.55)}100%{box-shadow:0 0 0 12px rgba(255,90,31,0)}}
+.tourNav{display:flex;gap:10px;align-items:center;margin-top:14px}
+.tourNav .btn{flex:1}
+.tourCount{font-family:"Space Grotesk";color:var(--muted);font-size:13px;margin-bottom:10px}
+/* historial */
+.hist{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.hitem{display:flex;gap:12px;align-items:center;cursor:pointer}
+.hitem .th{width:54px;height:68px;border-radius:10px;background:#111 center/cover;flex:0 0 54px;border:1px solid var(--line)}
+.hitem .tx{flex:1;min-width:0}
+.hitem .tx b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem .tx span{font-size:13px;color:var(--muted)}
+.hitem .del{background:none;border:none;color:var(--dim);font-size:18px;padding:6px}
+/* chat agente */
+.phone{background:#0b141a;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.phone .top{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#1f2c33;font-size:15px}
+.phone .top .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--o),#b8360b);display:grid;place-items:center;font-weight:700;color:#000}
+.phone .top small{display:block;color:#8696a0;font-size:12px}
+.msgs{padding:14px 10px;min-height:220px;max-height:440px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.bub{max-width:82%;padding:8px 11px;border-radius:10px;font-size:15px;line-height:1.4;white-space:pre-wrap;position:relative}
+.bub.u{align-self:flex-end;background:#005c4b}
+.bub.a{align-self:flex-start;background:#202c33;cursor:pointer}
+.bub.a:hover{outline:1px solid rgba(255,90,31,.5)}
+.bub.sel{outline:2px solid var(--o)}
+.bub.typing{color:#8696a0;font-style:italic}
+.chatin{display:flex;gap:8px;padding:10px;background:#1f2c33;align-items:center}
+.chatin input{border-radius:999px;padding:11px 14px;background:#2a3942;border:none}
+.chatin .micbtn{width:44px;height:44px;flex:0 0 44px}
+.chatin .send{width:44px;height:44px;flex:0 0 44px;border-radius:50%;border:none;background:var(--o);color:#000;font-size:18px}
+.fix{margin-top:12px}
+.score{font-family:"Space Grotesk";font-size:44px;font-weight:700;color:var(--o);text-shadow:var(--glow);line-height:1}
+.res{display:flex;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:15px}
+.res:first-child{border:none}
+.vers{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ver{display:flex;gap:10px;align-items:center;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:12px}
+.ver.on{border-color:var(--o)}
+.ver div{flex:1}
+.ver span{color:var(--muted);font-size:12px;display:block}
+.safe{border-left:2px solid #7dffb0;padding-left:12px;margin-top:12px}
+.warnline{font-size:13px;color:#ffcf6b;margin-top:10px}
+.edit{margin-top:12px;display:none}
+.edit.on{display:block}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat div{background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat b{display:block;font-family:"Space Grotesk";font-size:22px}
+.stat span{font-size:12px;color:var(--muted)}
+.prices{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;font-size:13px;color:var(--muted);margin-top:10px}
+.prices input{padding:8px 10px;font-size:14px}
+</style>
+
 </head>
 <body>
 <canvas id="sky"></canvas>
@@ -160,14 +244,14 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 
 <div class="wrap">
   <header>
-    <div class="brand" style="flex-direction:column;align-items:flex-start;gap:0"><div class="logo" id="appname">Cel<span class="dot"></span><span class="ia">IA</span></div><div class="byline">Comunidad Celion</div></div>
+    <div class="brand" style="flex-direction:column;align-items:flex-start;gap:0"><div class="logo" id="appname" style="cursor:pointer">Cel<span class="dot"></span><span class="ia">IA</span></div><div class="byline">Comunidad Celion</div></div>
     <div>
       <button class="ghost hidden" id="btnNew">Nueva</button>
       <button class="ghost" id="btnSettings">Ajustes</button>
     </div>
   </header>
 
-  <!-- 0 · BIENVENIDA / API KEY -->
+  <!-- API KEY -->
   <section class="screen" id="s-setup">
     <div class="eyebrow">Paso único</div>
     <h1 class="title">Conecta tu <em>IA</em> una sola vez</h1>
@@ -189,24 +273,22 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
     </div>
   </section>
 
-  <!-- 1 · INICIO -->
+  <!-- INICIO -->
   <section class="screen" id="s-home">
     <div class="eyebrow">Hola, soy Cel.IA</div>
     <h1 class="title">Tu campaña,<br><em>lista para pegar.</em></h1>
-    <p class="sub">Tu asistente de anuncios. Respóndeme unas preguntas (puedes hablarme) y te entrego estrategia, imágenes, textos, el paso a paso en Meta y los prompts de tu agente.</p>
-    <button class="btn full" id="btnStart">Empezar</button>
-    <div id="resumeBox" class="hidden" style="margin-top:12px">
-      <button class="btn line full" id="btnResume">Ver mi última campaña</button>
-    </div>
+    <p class="sub">Tu asistente de anuncios. Respóndeme unas preguntas (puedes hablarme) y te entrego estrategia, imágenes, textos, el paso a paso en Meta y tu agente de WhatsApp probado.</p>
+    <button class="btn full" id="btnStart">Nueva campaña</button>
+    <div class="hist" id="hist"></div>
   </section>
 
-  <!-- 2 · PREGUNTAS -->
+  <!-- PREGUNTAS -->
   <section class="screen" id="s-wizard">
     <div class="prog" id="prog"></div>
     <div id="qbox"></div>
   </section>
 
-  <!-- 3 · RESUMEN -->
+  <!-- RESUMEN -->
   <section class="screen" id="s-review">
     <div class="eyebrow">Revisa</div>
     <h2 class="title" style="font-size:30px">¿Todo bien?</h2>
@@ -220,7 +302,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
     <button class="btn" id="navNext">Siguiente</button>
   </div></div>
 
-  <!-- 4 · CARGANDO -->
+  <!-- CARGANDO -->
   <section class="screen" id="s-loading">
     <div class="loader">
       <div class="orb"></div>
@@ -231,7 +313,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
     </div>
   </section>
 
-  <!-- 5 · RESULTADOS -->
+  <!-- RESULTADOS -->
   <section class="screen" id="s-results">
     <div class="tabs" id="tabs">
       <button class="tab on" data-p="p-plan">Estrategia</button>
@@ -248,7 +330,20 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
   <!-- AJUSTES -->
   <section class="screen" id="s-settings">
     <div class="eyebrow">Ajustes</div>
-    <h2 class="title" style="font-size:30px">Tu conexión</h2>
+    <h2 class="title" style="font-size:30px">Tu Cel.IA</h2>
+
+    <div class="card">
+      <b>Mi gasto en IA</b>
+      <div class="stat" id="spendStats"></div>
+      <p class="note">Estimado con los precios de abajo. El cobro oficial está en tu <a href="https://platform.openai.com/settings/organization/usage" target="_blank" rel="noopener">cuenta de OpenAI</a>.</p>
+    </div>
+
+    <div class="card">
+      <b>Google Drive</b>
+      <p class="note" id="driveInfo" style="margin-top:4px"></p>
+      <div id="driveBox"></div>
+    </div>
+
     <div class="card">
       <div id="setKeyInfo" class="sub" style="margin:0 0 12px"></div>
       <button class="btn line full" id="btnChangeKey">Cambiar API key</button>
@@ -259,47 +354,76 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
       <div class="chips" id="qualityChips" style="margin-top:10px"></div>
     </div>
     <details class="card">
+      <summary>Precios y tipo de cambio</summary>
+      <div class="prices" id="priceBox"></div>
+      <p class="note">USD por millón de tokens, salvo voz (USD por minuto). Actualízalos si OpenAI cambia precios.</p>
+    </details>
+    <details class="card">
       <summary>Modelos (avanzado)</summary>
       <label class="small">Texto</label><input type="text" id="mText">
       <label class="small">Imagen</label><input type="text" id="mImage">
       <label class="small">Voz a texto</label><input type="text" id="mStt">
-      <p class="note">Se detectan solos al conectar tu llave. Cámbialos solo si sabes lo que haces.</p>
+      <p class="note">Se detectan solos al conectar tu llave.</p>
       <button class="btn line sm" id="btnDetect">Volver a detectar</button>
     </details>
     <button class="btn full" id="btnSaveSettings" style="margin-top:16px">Guardar</button>
   </section>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 /* =========================================================
-   Cel.IA · V1
+   Cel.IA · v2
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
+const VERSION = "2.0";
+const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
-const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", last:"cl_last", answers:"cl_answers" };
+const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
 const store = {
   get(k,d=null){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
-  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
-  del(k){ try{ localStorage.removeItem(k);}catch(e){} }
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 };
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
+const DEFAULT_PRICES = { textIn:0.50, textOut:2.50, imgTextIn:5, imgIn:8, imgOut:30, stt:0.006, fx:18.5 };
 const state = {
   key: store.get(LS.key,""),
   models: store.get(LS.models,{text:"",image:"",stt:""}),
   quality: store.get(LS.quality,"medium"),
+  prices: Object.assign({}, DEFAULT_PRICES, store.get(LS.prices,{})),
   answers: store.get(LS.answers,{}),
-  photos: [],          // File[] fotos propias (no se guardan)
-  refs: [],            // File[] referencias de estilo
-  plan: null,
-  images: {},          // idx -> dataURL
-  step: 0,
-  returnToReview:false
+  files: { material:[], refs:[] },   // material: [{id,name,type,blob}], refs: [Blob]
+  exact: null,                        // null = automático
+  c: null,                            // campaña abierta
+  step: 0, returnToReview:false
 };
+
+/* ---------------- Almacenamiento (IndexedDB) ---------------- */
+const idb = {
+  db:null,
+  open(){ if(this.db) return Promise.resolve(this.db);
+    return new Promise((res,rej)=>{ let r; try{ r=indexedDB.open("celia",1);}catch(e){return rej(e);}
+      r.onupgradeneeded=()=>r.result.createObjectStore("campaigns",{keyPath:"id"});
+      r.onsuccess=()=>{this.db=r.result;res(this.db);}; r.onerror=()=>rej(r.error); }); },
+  async tx(mode,fn){ const db=await this.open(); return new Promise((res,rej)=>{ const t=db.transaction("campaigns",mode); const s=t.objectStore("campaigns"); const r=fn(s); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); }); },
+  put(o){ return this.tx("readwrite",s=>s.put(o)); },
+  get(id){ return this.tx("readonly",s=>s.get(id)); },
+  all(){ return this.tx("readonly",s=>s.getAll()); },
+  del(id){ return this.tx("readwrite",s=>s.delete(id)); }
+};
+let saveT=null;
+const pending=new Set();
+function saveCampaign(now){ if(!state.c) return; clearTimeout(saveT); const obj=state.c; const go=()=>idb.put(obj).catch(e=>console.warn("No se pudo guardar",e)); if(now) return go(); saveT=setTimeout(go,400); }
+
+/* URLs de blobs */
+const urlCache = new WeakMap();
+const urlFor = b => { if(!b) return ""; if(!urlCache.has(b)) urlCache.set(b, URL.createObjectURL(b)); return urlCache.get(b); };
+const dataURLtoBlob = async u => (await fetch(u)).blob();
 
 /* ---------------- Fondo: destellos ---------------- */
 (function sky(){
@@ -313,26 +437,47 @@ const state = {
       x.fillStyle = s.o?`rgba(255,120,60,${a})`:`rgba(255,255,255,${a})`;
       x.beginPath(); x.arc(s.x,s.y,s.r,0,6.28); x.fill();
       if(s.r>1.1*devicePixelRatio && a>.75){ x.strokeStyle=`rgba(255,255,255,${(a-.75)*2})`; x.lineWidth=.6*devicePixelRatio;
-        x.beginPath(); x.moveTo(s.x-6*s.r,s.y); x.lineTo(s.x+6*s.r,s.y); x.moveTo(s.x,s.y-6*s.r); x.lineTo(s.x,s.y+6*s.r); x.stroke(); }
-    }
+        x.beginPath(); x.moveTo(s.x-6*s.r,s.y); x.lineTo(s.x+6*s.r,s.y); x.moveTo(s.x,s.y-6*s.r); x.lineTo(s.x,s.y+6*s.r); x.stroke(); } }
     if(!reduce) requestAnimationFrame(draw);
   })();
 })();
 
-/* ---------------- Utilidades UI ---------------- */
+/* ---------------- UI util ---------------- */
 function show(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));
+  $$(".screen").forEach(s=>s.classList.toggle("on",s.id===id));
   $("#navbar").classList.toggle("hidden", !(id==="s-wizard"||id==="s-review"));
   $("#btnNew").classList.toggle("hidden", id!=="s-results");
   scrollTo({top:0,behavior:"instant"});
 }
-function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),1800); }
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2200); }
 async function copyText(t, btn){
   try{ await navigator.clipboard.writeText(t); }
   catch(e){ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(_){} ta.remove(); }
-  if(btn){ btn.textContent="Copiado"; btn.classList.add("ok"); setTimeout(()=>{btn.textContent="Copiar";btn.classList.remove("ok");},1500); }
-  else toast("Copiado");
+  if(btn){ const o=btn.textContent; btn.textContent="Copiado"; btn.classList.add("ok"); setTimeout(()=>{btn.textContent=o;btn.classList.remove("ok");},1500); } else toast("Copiado");
 }
+function field(label, text){ return `<div class="field"><div class="lbl">${esc(label)}</div><div class="txt">${esc(text)}</div><button class="copy" data-copy="${esc(text)}">Copiar</button></div>`; }
+function bindCopies(root){ root.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copyText(b.dataset.copy,b)); }
+
+/* ---------------- Gasto ---------------- */
+const P = () => state.prices;
+const usdFmt = u => u<0.01 ? "$"+u.toFixed(3) : "$"+u.toFixed(2);
+const mxnFmt = u => "$"+(u*P().fx).toFixed(u*P().fx<10?2:0);
+const both = u => `${usdFmt(u)} USD ≈ ${mxnFmt(u)} MXN`;
+function costText(u){ if(!u) return 0; const i=u.input_tokens??u.prompt_tokens??0, o=u.output_tokens??u.completion_tokens??0; return i*P().textIn/1e6 + o*P().textOut/1e6; }
+const IMG_FALLBACK = {low:.012, medium:.045, high:.18};
+function costImage(u){
+  if(u && (u.output_tokens||u.total_tokens)){ const d=u.input_tokens_details||{}; const ti=d.text_tokens??(d.image_tokens!=null?(u.input_tokens-d.image_tokens):u.input_tokens||0); const ii=d.image_tokens||0;
+    return ti*P().imgTextIn/1e6 + ii*P().imgIn/1e6 + (u.output_tokens||0)*P().imgOut/1e6; }
+  return IMG_FALLBACK[state.quality]||.045;
+}
+function track(kind, usd, count){
+  if(!usd||!isFinite(usd)) return;
+  const L=store.get(LS.ledger,[]); L.push({t:Date.now(),k:kind,u:+usd.toFixed(5),n:count||0,c:state.c&&state.c.id}); if(L.length>3000) L.splice(0,L.length-3000); store.set(LS.ledger,L);
+  if(state.c){ state.c.costs=state.c.costs||{}; state.c.costs[kind]=(state.c.costs[kind]||0)+usd; saveCampaign(); paintCost(); }
+}
+function avgImage(){ const L=store.get(LS.ledger,[]).filter(e=>e.k==="imagenes"&&e.n); const n=L.reduce((a,e)=>a+e.n,0); return n? L.reduce((a,e)=>a+e.u,0)/n : (IMG_FALLBACK[state.quality]||.045); }
+const campaignTotal = c => Object.values((c&&c.costs)||{}).reduce((a,b)=>a+b,0);
+function paintCost(){ const el=$("#campCost"); if(el&&state.c) el.innerHTML=`Esta campaña te ha costado <b>${both(campaignTotal(state.c))}</b>`; }
 
 /* ---------------- OpenAI ---------------- */
 async function oa(path, body, {form=false, method="POST"}={}){
@@ -349,59 +494,69 @@ function friendly(e){
   if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return location.protocol!=="https:" ? "Estás abriendo el archivo como vista previa y ahí la conexión está bloqueada. Abre la app desde su link (https://…)." : "No hay conexión con OpenAI. Revisa tu internet e intenta de nuevo.";
   return m;
 }
-function pick(ids, prefs, re, avoid){
-  for(const p of prefs) if(ids.includes(p)) return p;
-  const c = ids.filter(i=>re.test(i) && !(avoid&&avoid.test(i))).sort().reverse();
-  return c[0]||prefs[prefs.length-1];
-}
+function pick(ids, prefs, re, avoid){ for(const p of prefs) if(ids.includes(p)) return p; const c=ids.filter(i=>re.test(i)&&!(avoid&&avoid.test(i))).sort().reverse(); return c[0]||prefs[prefs.length-1]; }
 async function detectModels(){
-  const j = await oa("/models",null,{method:"GET"});
-  const ids = (j.data||[]).map(m=>m.id);
+  const j = await oa("/models",null,{method:"GET"}); const ids=(j.data||[]).map(m=>m.id);
   state.models = {
     text: pick(ids,["gpt-6.1-terra","gpt-6-terra","gpt-5.1-mini","gpt-5-mini","gpt-4.1-mini","gpt-4o-mini"], /^gpt-\d/, /image|audio|realtime|transcribe|tts|search|live|translate|embed|codex/),
     image: pick(ids,["gpt-image-2.6-flare","gpt-image-2.6","gpt-image-2.5-flare","gpt-image-2","gpt-image-1.5","gpt-image-1","gpt-image-1-mini"], /^gpt-image/),
     stt: pick(ids,["gpt-4o-mini-transcribe","gpt-4o-transcribe","whisper-1"], /transcribe|whisper/, /live|realtime/)
   };
-  store.set(LS.models,state.models);
-  return state.models;
+  store.set(LS.models,state.models); return state.models;
 }
-async function genJSON(system, user, imgs=[]){
-  const m=state.models.text;
-  const input = imgs.length ? [{role:"user",content:[{type:"input_text",text:user},...imgs.map(u=>({type:"input_image",image_url:u}))]}] : user;
-  try{
-    const j = await oa("/responses",{model:m, instructions:system, input, text:{format:{type:"json_object"}}});
-    let out = j.output_text;
-    if(!out && Array.isArray(j.output)) out = j.output.flatMap(o=>o.content||[]).filter(c=>c.type==="output_text").map(c=>c.text).join("");
-    return parseJSON(out);
-  }catch(e){
-    if(e.status===401||e.status===429) throw e;
-    const j = await oa("/chat/completions",{model:m, messages:[{role:"system",content:system},{role:"user",content: imgs.length?[{type:"text",text:user},...imgs.map(u=>({type:"image_url",image_url:{url:u}}))]:user}], response_format:{type:"json_object"}});
-    return parseJSON(j.choices[0].message.content);
-  }
-}
+function outText(j){ if(j.output_text) return j.output_text; if(Array.isArray(j.output)) return j.output.flatMap(o=>o.content||[]).filter(c=>c.type==="output_text").map(c=>c.text).join(""); if(j.choices) return j.choices[0].message.content; return ""; }
 function parseJSON(t){ t=String(t||"").trim().replace(/^```(json)?/,"").replace(/```$/,""); const a=t.indexOf("{"), b=t.lastIndexOf("}"); return JSON.parse(t.slice(a,b+1)); }
-function shrink(file,max=1024,type="image/jpeg"){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const s=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height); res(c.toDataURL(type,.85)); }; img.onerror=rej; img.src=URL.createObjectURL(file); }); }
-async function dataURLtoFile(u,name){ const b=await (await fetch(u)).blob(); return new File([b],name,{type:b.type}); }
-async function transcribe(blob){
+/* parts: [{type:"input_image",image_url}|{type:"input_file",filename,file_data}] */
+function toChatParts(text, parts){ return [{type:"text",text}, ...parts.map(p=>p.type==="input_image"?{type:"image_url",image_url:{url:p.image_url}}:{type:"file",file:{filename:p.filename,file_data:p.file_data}})]; }
+async function llm({system, messages, user, parts=[], json=false, kind="texto"}){
+  const m=state.models.text;
+  const input = messages ? messages.map(x=>({role:x.role,content:x.content})) : (parts.length ? [{role:"user",content:[{type:"input_text",text:user},...parts]}] : user);
+  let j;
+  try{ const b={model:m, instructions:system, input}; if(json) b.text={format:{type:"json_object"}}; j=await oa("/responses",b); }
+  catch(e){ if(e.status===401||e.status===429) throw e;
+    const msgs=[{role:"system",content:system}, ...(messages? messages.map(x=>({role:x.role,content:x.content})) : [{role:"user",content: parts.length?toChatParts(user,parts):user}])];
+    const b={model:m, messages:msgs}; if(json) b.response_format={type:"json_object"}; j=await oa("/chat/completions",b); }
+  track(kind, costText(j.usage));
+  const t=outText(j); return json ? parseJSON(t) : t.trim();
+}
+function shrink(blob,max=1024,type="image/jpeg"){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const s=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height); res(c.toDataURL(type,.88)); }; img.onerror=rej; img.src=urlFor(blob); }); }
+const blobToDataURL = b => new Promise(r=>{ const f=new FileReader(); f.onload=()=>r(f.result); f.readAsDataURL(b); });
+async function transcribe(blob, secs){
   const ext = /mp4|m4a|aac/.test(blob.type)?"m4a":/ogg/.test(blob.type)?"ogg":/wav/.test(blob.type)?"wav":"webm";
   const fd=new FormData(); fd.append("file",blob,"voz."+ext); fd.append("model",state.models.stt||"whisper-1"); fd.append("language","es");
-  const j=await oa("/audio/transcriptions",fd,{form:true}); return j.text||"";
+  const j=await oa("/audio/transcriptions",fd,{form:true}); track("voz",(secs/60)*P().stt); return j.text||"";
 }
-async function genImage(prompt, photo, ref){
-  const run = async (withQuality)=>{
-    if(photo||ref){
-      const fd=new FormData(); fd.append("model",state.models.image); fd.append("prompt",prompt); fd.append("size","1024x1536");
-      if(withQuality) fd.append("quality",state.quality);
-      if(photo) fd.append("image[]",await dataURLtoFile(await shrink(photo,1536,"image/png"),"foto.png"));
-      if(ref) fd.append("image[]",await dataURLtoFile(await shrink(ref,1024,"image/png"),"referencia.png"));
-      return oa("/images/edits",fd,{form:true});
-    }
-    const b={model:state.models.image,prompt,size:"1024x1536",n:1}; if(withQuality) b.quality=state.quality;
-    return oa("/images/generations",b);
+async function genImage(prompt, inputs){   // inputs: Blob[]
+  const run = async (q)=>{
+    if(inputs.length){ const fd=new FormData(); fd.append("model",state.models.image); fd.append("prompt",prompt); fd.append("size","1024x1536"); if(q) fd.append("quality",state.quality);
+      for(const [k,b] of inputs.entries()) fd.append("image[]", await dataURLtoBlob(await shrink(b,1536,"image/png")), "img"+k+".png");
+      return oa("/images/edits",fd,{form:true}); }
+    const b={model:state.models.image,prompt,size:"1024x1536",n:1}; if(q) b.quality=state.quality; return oa("/images/generations",b);
   };
   let j; try{ j=await run(true); }catch(e){ if(e.status===400 && /quality|size/i.test(e.message)) j=await run(false); else throw e; }
   const d=j.data&&j.data[0]; if(!d) throw new Error("La IA no devolvió imagen.");
-  return d.b64_json ? "data:image/png;base64,"+d.b64_json : d.url;
+  track("imagenes", costImage(j.usage), 1);
+  return d.b64_json ? dataURLtoBlob("data:image/png;base64,"+d.b64_json) : (await fetch(d.url)).blob();
+}
+
+/* ---------------- Voz ---------------- */
+function micButton(id){ return `<button class="micbtn" type="button" id="${id}" aria-label="Hablar"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button>`; }
+function bindVoice(btn, setLabel, onText){
+  if(!btn) return;
+  if(!navigator.mediaDevices||!window.MediaRecorder){ btn.style.display="none"; setLabel("Usa el micrófono de tu teclado 🎙️ para dictar."); return; }
+  let rec=null, chunks=[], t0=0;
+  btn.onclick=async()=>{
+    if(rec&&rec.state==="recording"){ rec.stop(); return; }
+    try{
+      const st=await navigator.mediaDevices.getUserMedia({audio:true});
+      chunks=[]; rec=new MediaRecorder(st); t0=Date.now();
+      rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+      rec.onstop=async()=>{ st.getTracks().forEach(t=>t.stop()); btn.classList.remove("rec"); setLabel("Escribiendo lo que dijiste…");
+        try{ const t=await transcribe(new Blob(chunks,{type:rec.mimeType||"audio/webm"}),(Date.now()-t0)/1000); onText(t.trim()); setLabel("Listo. Puedes editarlo o grabar más."); }
+        catch(e){ setLabel(friendly(e)); } };
+      rec.start(); btn.classList.add("rec"); setLabel("Escuchando… toca para terminar");
+    }catch(e){ setLabel("Aquí no tengo permiso de micrófono. Usa el micrófono de tu teclado 🎙️ para dictar."); }
+  };
 }
 
 /* ---------------- Preguntas ---------------- */
@@ -409,382 +564,657 @@ const TIPOS=[["Producto","📦"],["Servicio","🤝"],["Evento","🎟️"],["Reto
 const OBJ=[["Que me escriban por WhatsApp","💬"],["Agendar citas","📅"],["Registros a mi evento","🎟️"],["Vender en línea (tengo página web)","🛒"]];
 const STEPS=[
   {id:"tipo", q:"¿Qué vas a promocionar?", help:"Elige el que más se parezca.", type:"chips", opts:TIPOS},
-  {id:"descripcion", q:"Cuéntame de qué se trata", help:"Qué es, qué incluye, para quién es y qué lo hace diferente. Habla con confianza, como si le explicaras a un amigo.", type:"text", voice:true,
-    ph:a=>({"Producto":"Ej. Un suplemento de colágeno con sabor a mango, para personas que quieren cuidar su piel y articulaciones…","Servicio":"Ej. Escaneo de bienestar de 30 minutos donde te muestro cómo está tu cuerpo…","Evento":"Ej. Conferencia presencial sobre longevidad, IA y negocios digitales…","Reto de varios días":"Ej. Reto de 21 días para mejorar energía y hábitos, con grupo de WhatsApp…","Oportunidad de negocio":"Ej. Invito a emprendedores a conocer un modelo de negocio de salud con herramientas digitales…"}[a.tipo]||"Descríbelo con tus palabras…")},
+  {id:"descripcion", q:"Cuéntame de qué se trata", help:"Qué es, qué incluye, para quién es y qué lo hace diferente. También puedes adjuntar fotos del producto, tu flyer o un PDF con la información.", type:"text", voice:true, attach:true,
+    ph:a=>({"Producto":"Ej. Creatina con HMB micronizada 500 mesh, para personas que entrenan y quieren recuperarse mejor…","Servicio":"Ej. Escaneo de bienestar de 30 minutos donde te muestro cómo está tu cuerpo…","Evento":"Ej. Conferencia presencial sobre longevidad, IA y negocios digitales…","Reto de varios días":"Ej. Reto de 21 días para mejorar energía y hábitos, con grupo de WhatsApp…","Oportunidad de negocio":"Ej. Invito a emprendedores a conocer un modelo de negocio de salud con herramientas digitales…"}[a.tipo]||"Descríbelo con tus palabras…")},
   {id:"oferta", q:a=>a.tipo==="Evento"?"Fecha, hora, lugar y costo":"¿Precio, oferta o fecha?", help:"Lo que la gente necesita saber para decidir. Si no aplica, omite.", type:"text", voice:true, optional:true,
     ph:a=>a.tipo==="Evento"?"Ej. Sábado 6 de diciembre, 10 am, Hotel X en Guadalajara. Entrada gratuita con registro.":"Ej. $650 MXN, promoción 2x1 hasta el domingo…"},
   {id:"objetivo", q:"¿Qué quieres que haga la gente?", help:"Esto define cómo se configura la campaña en Meta.", type:"chips", opts:OBJ},
   {id:"ubicacion", q:"¿Dónde quieres anunciarte?", help:"Ciudad, zona o colonias. Si es presencial, piensa en qué tan lejos viajaría tu cliente.", type:"text", voice:true, short:true, chips:["Todo México","Mi ciudad y alrededores (15 km)"], ph:()=>"Ej. Guadalajara y Zapopan"},
   {id:"publico", q:"¿A quién quieres llegar?", help:"Edad, intereses, situación. Si no sabes, deja que la IA decida.", type:"text", voice:true, optional:true, chips:["No sé, decide tú"], ph:()=>"Ej. Mujeres de 30 a 55 que cuidan su salud y la de su familia"},
   {id:"presupuesto", q:"¿Cuánto vas a invertir?", help:"Por día. Con poco presupuesto también se puede, solo hay que enfocarlo bien.", type:"budget"},
-  {id:"fotos", q:"¿Tienes fotos o referencias?", help:"Tus fotos hacen el anuncio real. Las referencias (anuncios o estilos que te gustan) le dicen a la IA cómo quieres que se vea. Si no tienes nada, la IA lo crea.", type:"photos", optional:true},
-  {id:"marca", q:"¿Cómo te presentas?", help:"Tu nombre o el de tu marca, y tu WhatsApp para los anuncios y el agente.", type:"brand"},
+  {id:"estilo", q:"¿Cómo quieres que se vean?", help:"Sube anuncios o diseños que te gusten como referencia. La IA toma el estilo, no copia el contenido.", type:"style", optional:true},
+  {id:"marca", q:"¿Cómo te presentas?", help:"Tu nombre, tu compañía o marcas (se mencionan libremente) y tu WhatsApp.", type:"brand"},
   {id:"tono", q:"¿Con qué tono hablamos?", help:"Puedes elegir más de uno.", type:"chips", multi:true, optional:true, opts:[["Cercano","😊"],["Profesional","💼"],["Energético","⚡"],["Inspirador","✨"],["Directo","🎯"]]}
 ];
 const val = v => typeof v==="function" ? v(state.answers) : v;
+const matImages = () => state.files.material.filter(f=>/^image\//.test(f.type));
+const exactOn = () => state.exact!=null ? state.exact : (state.answers.tipo==="Producto" && matImages().length>0);
 
 function renderProg(){ $("#prog").innerHTML = STEPS.map((_,i)=>`<i class="${i<=state.step?"done":""}"></i>`).join(""); }
-function micHTML(){ return `<div class="mic"><button class="micbtn" type="button" id="mic" aria-label="Hablar"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button><span class="miclabel" id="miclabel">Toca y habla</span></div>`; }
-
+function fileList(arr, key){
+  return arr.map((f,i)=>{ const isImg=/^image\//.test(f.type||"image/"); const b=f.blob||f;
+    return `<div class="fileitem"><div class="pv" style="${isImg?`background-image:url(${urlFor(b)})`:""}">${isImg?"":"📄"}</div><div class="nm">${esc(f.name||"Imagen")}</div><button data-rm="${key}:${i}">✕</button></div>`; }).join("");
+}
 function renderStep(){
   const s=STEPS[state.step], a=state.answers; renderProg();
   let h=`<div class="qnum">${String(state.step+1).padStart(2,"0")} / ${String(STEPS.length).padStart(2,"0")}</div><h2 class="q">${esc(val(s.q))}</h2><p class="help">${esc(s.help)}</p>`;
   if(s.type==="chips"){
-    const cur = a[s.id]; const sel = v => s.multi ? (cur||[]).includes(v) : cur===v;
+    const cur=a[s.id]; const sel=v=> s.multi?(cur||[]).includes(v):cur===v;
     h+=`<div class="chips">`+s.opts.map(([t,e])=>`<button class="chip ${sel(t)?"on":""}" data-v="${esc(t)}"><span class="em">${e}</span>${esc(t)}</button>`).join("")+`</div>`;
   } else if(s.type==="text"){
     if(s.chips) h+=`<div class="chips" style="margin-bottom:12px">`+s.chips.map(t=>`<button class="chip ${a[s.id]===t?"on":""}" data-fill="${esc(t)}">${esc(t)}</button>`).join("")+`</div>`;
     h+= s.short ? `<input type="text" id="inp" value="${esc(a[s.id]||"")}" placeholder="${esc(val(s.ph))}">` : `<textarea id="inp" placeholder="${esc(val(s.ph))}">${esc(a[s.id]||"")}</textarea>`;
-    if(s.voice) h+=micHTML();
+    if(s.voice) h+=`<div class="mic">${micButton("mic")}<span class="miclabel" id="miclabel">Toca y habla</span></div>`;
+    if(s.attach) h+=`<label class="attach" for="att">📎 Adjuntar fotos, flyer o documentos</label><input type="file" id="att" accept="image/png,image/jpeg,image/webp,application/pdf,text/plain" multiple class="hidden"><div class="files" id="attList"></div><p class="note">Fotos del producto, flyer del evento o PDF con información. Máximo 6 archivos.</p>`;
   } else if(s.type==="budget"){
     const b=a.presupuesto||{diario:150,dias:7,moneda:"MXN"};
     h+=`<label class="small" style="margin-top:0">Por día</label><div class="chips" id="bd">`+[100,150,200,300].map(n=>`<button class="chip ${b.diario==n?"on":""}" data-n="${n}">$${n}</button>`).join("")+`</div>
       <label class="small">O escribe otra cantidad</label><div style="display:flex;gap:8px"><input type="number" id="bdIn" inputmode="numeric" value="${b.diario}"><select id="cur" style="width:110px">${["MXN","USD","COP","PEN","CLP","GTQ"].map(c=>`<option ${b.moneda===c?"selected":""}>${c}</option>`).join("")}</select></div>
-      <label class="small">¿Cuántos días?</label><div class="chips" id="dd">`+[5,7,10,14,30].map(n=>`<button class="chip ${b.dias==n?"on":""}" data-n="${n}">${n} días</button>`).join("")+`</div>
-      <p class="note" id="btot"></p>`;
-  } else if(s.type==="photos"){
-    h+=`<label class="drop" for="ph"><b>📷 Tus fotos</b>Producto, lugar, evento o tú · hasta 3</label><input type="file" id="ph" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="thumbs" id="thumbs"></div>
-      <label class="drop" for="rf" style="margin-top:14px"><b>✦ Referencias de estilo</b>Anuncios o diseños que te gustan · hasta 3</label><input type="file" id="rf" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="thumbs" id="rthumbs"></div>
-      <p class="note">Las referencias solo guían el estilo. La IA no copia marcas ni textos de otros.</p>`;
+      <label class="small">¿Cuántos días?</label><div class="chips" id="dd">`+[5,7,10,14,30].map(n=>`<button class="chip ${b.dias==n?"on":""}" data-n="${n}">${n} días</button>`).join("")+`</div><p class="note" id="btot"></p>`;
+  } else if(s.type==="style"){
+    h+=`<label class="drop" for="rf"><b>✦ Referencias de estilo</b>Anuncios o diseños que te gustan · hasta 3</label><input type="file" id="rf" accept="image/png,image/jpeg,image/webp" multiple class="hidden"><div class="files" id="refList"></div>`;
+    if(matImages().length) h+=`<div class="card" style="margin-top:16px"><label class="switch"><input type="checkbox" id="exact" ${exactOn()?"checked":""}><span class="tg"></span><span><b>Mantener mi producto exacto</b><br><span class="note" style="margin:0">La IA crea el fondo y la escena, y la app coloca tu foto real encima: la etiqueta queda idéntica. Recomendado para productos. Funciona mejor con foto en fondo liso.</span></span></label></div>`;
   } else if(s.type==="brand"){
     const m=a.marca||{};
-    h+=`<input type="text" id="bn" placeholder="Tu nombre o marca" value="${esc(m.nombre||"")}">
+    h+=`<input type="text" id="bn" placeholder="Tu nombre" value="${esc(m.nombre||"")}">
+      <label class="small">Tu compañía o marcas (opcional)</label><input type="text" id="bc" placeholder="Ej. Celion, Alpha Size" value="${esc(m.compania||"")}">
       <label class="small">WhatsApp (opcional)</label><input type="text" id="bw" inputmode="tel" placeholder="Ej. 33 1234 5678" value="${esc(m.whatsapp||"")}">`;
   }
   $("#qbox").innerHTML=h; bindStep(s); updateNav();
 }
-
+function drawFiles(){
+  if($("#attList")) $("#attList").innerHTML=fileList(state.files.material,"m");
+  if($("#refList")) $("#refList").innerHTML=fileList(state.files.refs.map(b=>({blob:b,type:"image/",name:"Referencia"})),"r");
+  $$("[data-rm]").forEach(b=>b.onclick=()=>{ const [k,i]=b.dataset.rm.split(":"); (k==="m"?state.files.material:state.files.refs).splice(+i,1); drawFiles(); updateNav(); });
+}
 function bindStep(s){
   const a=state.answers;
-  if(s.type==="chips") document.querySelectorAll("#qbox .chip").forEach(b=>b.onclick=()=>{
+  if(s.type==="chips") $$("#qbox .chip").forEach(b=>b.onclick=()=>{
     const v=b.dataset.v;
     if(s.multi){ const arr=a[s.id]||[]; a[s.id]=arr.includes(v)?arr.filter(x=>x!==v):[...arr,v]; b.classList.toggle("on"); }
-    else { a[s.id]=v; document.querySelectorAll("#qbox .chip").forEach(c=>c.classList.toggle("on",c===b)); setTimeout(next,260); }
+    else { a[s.id]=v; $$("#qbox .chip").forEach(c=>c.classList.toggle("on",c===b)); setTimeout(next,260); }
     save(); updateNav();
   });
   if(s.type==="text"){
-    const inp=$("#inp"); inp.oninput=()=>{a[s.id]=inp.value; document.querySelectorAll("#qbox [data-fill]").forEach(c=>c.classList.toggle("on",c.dataset.fill===inp.value)); save(); updateNav();};
-    document.querySelectorAll("#qbox [data-fill]").forEach(c=>c.onclick=()=>{ inp.value=c.dataset.fill; inp.oninput(); });
-    if(s.voice) bindMic(inp);
+    const inp=$("#inp"); inp.oninput=()=>{a[s.id]=inp.value; $$("#qbox [data-fill]").forEach(c=>c.classList.toggle("on",c.dataset.fill===inp.value)); save(); updateNav();};
+    $$("#qbox [data-fill]").forEach(c=>c.onclick=()=>{ inp.value=c.dataset.fill; inp.oninput(); });
+    if(s.voice) bindVoice($("#mic"), t=>$("#miclabel").textContent=t, t=>{ inp.value=(inp.value?inp.value.trim()+" ":"")+t; inp.oninput(); });
+    if(s.attach){ $("#att").onchange=e=>{ for(const f of e.target.files){ if(state.files.material.length>=6) break; if(f.size>15e6){ toast(f.name+" pesa más de 15 MB"); continue; } state.files.material.push({id:uid(),name:f.name,type:f.type||"application/octet-stream",blob:f}); } e.target.value=""; drawFiles(); updateNav(); }; drawFiles(); }
     if(!("ontouchstart" in window)) setTimeout(()=>inp.focus(),50);
   }
   if(s.type==="budget"){
     const b=a.presupuesto=a.presupuesto||{diario:150,dias:7,moneda:"MXN"};
     const tot=()=>{ $("#btot").textContent=`Inversión total: $${(b.diario*b.dias).toLocaleString("es-MX")} ${b.moneda} en ${b.dias} días.`; save(); updateNav(); };
-    document.querySelectorAll("#bd .chip").forEach(c=>c.onclick=()=>{b.diario=+c.dataset.n; $("#bdIn").value=b.diario; document.querySelectorAll("#bd .chip").forEach(x=>x.classList.toggle("on",x===c)); tot();});
-    document.querySelectorAll("#dd .chip").forEach(c=>c.onclick=()=>{b.dias=+c.dataset.n; document.querySelectorAll("#dd .chip").forEach(x=>x.classList.toggle("on",x===c)); tot();});
-    $("#bdIn").oninput=e=>{b.diario=+e.target.value||0; document.querySelectorAll("#bd .chip").forEach(x=>x.classList.toggle("on",+x.dataset.n===b.diario)); tot();};
+    $$("#bd .chip").forEach(c=>c.onclick=()=>{b.diario=+c.dataset.n; $("#bdIn").value=b.diario; $$("#bd .chip").forEach(x=>x.classList.toggle("on",x===c)); tot();});
+    $$("#dd .chip").forEach(c=>c.onclick=()=>{b.dias=+c.dataset.n; $$("#dd .chip").forEach(x=>x.classList.toggle("on",x===c)); tot();});
+    $("#bdIn").oninput=e=>{b.diario=+e.target.value||0; $$("#bd .chip").forEach(x=>x.classList.toggle("on",+x.dataset.n===b.diario)); tot();};
     $("#cur").onchange=e=>{b.moneda=e.target.value; tot();};
     tot();
   }
-  if(s.type==="photos"){
-    const draw=()=>{
-      for(const [arr,box] of [[state.photos,"#thumbs"],[state.refs,"#rthumbs"]]){
-        $(box).innerHTML=arr.map((f,i)=>`<div class="thumb" style="background-image:url(${URL.createObjectURL(f)})"><button data-i="${i}">✕</button></div>`).join("");
-        $(box).querySelectorAll("button").forEach(b=>b.onclick=()=>{arr.splice(+b.dataset.i,1); draw(); updateNav();});
-      }
-      a.fotos=state.photos.length; a.refs=state.refs.length; save(); };
-    $("#ph").onchange=e=>{ for(const f of e.target.files) if(state.photos.length<3) state.photos.push(f); e.target.value=""; draw(); updateNav(); };
-    $("#rf").onchange=e=>{ for(const f of e.target.files) if(state.refs.length<3) state.refs.push(f); e.target.value=""; draw(); updateNav(); };
-    draw();
+  if(s.type==="style"){
+    $("#rf").onchange=e=>{ for(const f of e.target.files) if(state.files.refs.length<3) state.files.refs.push(f); e.target.value=""; drawFiles(); updateNav(); };
+    if($("#exact")) $("#exact").onchange=e=>{ state.exact=e.target.checked; };
+    drawFiles();
   }
   if(s.type==="brand"){
     const m=a.marca=a.marca||{};
     $("#bn").oninput=e=>{m.nombre=e.target.value; save(); updateNav();};
+    $("#bc").oninput=e=>{m.compania=e.target.value; save();};
     $("#bw").oninput=e=>{m.whatsapp=e.target.value; save();};
   }
 }
-
 function stepValid(s){
   const v=state.answers[s.id];
   if(s.optional) return true;
   if(s.type==="chips") return s.multi ? true : !!v;
-  if(s.type==="text") return !!(v&&v.trim().length>=2);
+  if(s.type==="text") return !!(v&&v.trim().length>=2) || (s.attach && state.files.material.length>0);
   if(s.type==="budget") return v && v.diario>0 && v.dias>0;
   if(s.type==="brand") return !!(v&&v.nombre&&v.nombre.trim());
   return true;
 }
 function updateNav(){
-  const rev = $("#s-review").classList.contains("on");
-  if(rev){ $("#navNext").textContent="Armar mi campaña ✦"; $("#navNext").disabled=false; $("#navSkip").classList.add("hidden"); return; }
-  const s=STEPS[state.step]; const empty = s.type==="photos"?!(state.photos.length||state.refs.length) : (s.multi?!(state.answers[s.id]||[]).length : !state.answers[s.id]);
+  if($("#s-review").classList.contains("on")){ $("#navNext").textContent="Armar mi campaña ✦"; $("#navNext").disabled=false; $("#navSkip").classList.add("hidden"); return; }
+  const s=STEPS[state.step];
+  const empty = s.type==="style" ? !state.files.refs.length : (s.multi?!(state.answers[s.id]||[]).length : !state.answers[s.id]);
   $("#navNext").disabled=!stepValid(s);
   $("#navNext").textContent = state.returnToReview ? "Listo" : (state.step===STEPS.length-1?"Revisar":"Siguiente");
   $("#navSkip").classList.toggle("hidden", !(s.optional && empty));
-  $("#navSkip").textContent = s.type==="photos" ? "No tengo" : "Omitir";
+  $("#navSkip").textContent = s.type==="style" ? "No tengo" : "Omitir";
 }
 function save(){ store.set(LS.answers,state.answers); }
-function next(){
-  if(state.returnToReview){ state.returnToReview=false; return review(); }
-  if(state.step<STEPS.length-1){ state.step++; renderStep(); scrollTo({top:0}); } else review();
-}
-function back(){
-  if($("#s-review").classList.contains("on")){ state.step=STEPS.length-1; show("s-wizard"); renderStep(); return; }
-  if(state.step>0){ state.step--; renderStep(); } else show("s-home");
-}
+function next(){ if(state.returnToReview){ state.returnToReview=false; return review(); } if(state.step<STEPS.length-1){ state.step++; renderStep(); scrollTo({top:0}); } else review(); }
+function back(){ if($("#s-review").classList.contains("on")){ state.step=STEPS.length-1; show("s-wizard"); renderStep(); return; } if(state.step>0){ state.step--; renderStep(); } else home(); }
 $("#navNext").onclick=()=>{ if($("#s-review").classList.contains("on")) generate(); else next(); };
 $("#navBack").onclick=back;
-$("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type!=="photos") state.answers[s.id]= s.multi?[]:""; save(); next(); };
+$("#navSkip").onclick=()=>{ const s=STEPS[state.step]; if(s.type!=="style") state.answers[s.id]= s.multi?[]:""; save(); next(); };
 
-/* ---------------- Voz ---------------- */
-let rec=null, chunks=[];
-function bindMic(inp){
-  const btn=$("#mic"), lbl=$("#miclabel");
-  if(!navigator.mediaDevices||!window.MediaRecorder){ btn.style.display="none"; lbl.textContent="Tu navegador no permite grabar; escribe tu respuesta."; return; }
-  btn.onclick=async()=>{
-    if(rec&&rec.state==="recording"){ rec.stop(); return; }
-    try{
-      const st=await navigator.mediaDevices.getUserMedia({audio:true});
-      chunks=[]; rec=new MediaRecorder(st);
-      rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
-      rec.onstop=async()=>{ st.getTracks().forEach(t=>t.stop()); btn.classList.remove("rec"); lbl.textContent="Escribiendo lo que dijiste…";
-        try{ const t=await transcribe(new Blob(chunks,{type:rec.mimeType||"audio/webm"})); inp.value=(inp.value?inp.value.trim()+" ":"")+t.trim(); inp.oninput(); lbl.textContent="Listo. Puedes editarlo o grabar más."; }
-        catch(e){ lbl.textContent=friendly(e); } };
-      rec.start(); btn.classList.add("rec"); lbl.textContent="Escuchando… toca para terminar";
-    }catch(e){ lbl.textContent="Aquí no tengo permiso de micrófono. Usa el micrófono de tu teclado 🎙️ para dictar."; }
-  };
-}
-
-/* ---------------- Resumen ---------------- */
 function review(){
-  const a=state.answers, b=a.presupuesto||{};
-  const rows=[
-    [0,"Promocionas",a.tipo],[1,"Descripción",a.descripcion],[2,"Detalles",a.oferta||"—"],[3,"Objetivo",a.objetivo],
+  const a=state.answers, b=a.presupuesto||{}, m=a.marca||{};
+  const rows=[[0,"Promocionas",a.tipo],[1,"Descripción",(a.descripcion||"")+(state.files.material.length?`\n📎 ${state.files.material.length} archivo(s)`:"")],[2,"Detalles",a.oferta||"—"],[3,"Objetivo",a.objetivo],
     [4,"Dónde",a.ubicacion],[5,"Público",a.publico||"Que decida la IA"],[6,"Presupuesto",`$${b.diario} ${b.moneda}/día · ${b.dias} días`],
-    [7,"Fotos",(state.photos.length||state.refs.length)?`${state.photos.length} foto(s) · ${state.refs.length} referencia(s)`:"La IA las crea"],[8,"Marca",(a.marca&&a.marca.nombre)||"—"],[9,"Tono",(a.tono||[]).join(", ")||"Automático"]];
-  $("#summary").innerHTML=rows.map(([i,k,v])=>`<div class="sumrow" data-i="${i}" style="cursor:pointer"><span>${k}</span><div>${esc(String(v||"—").slice(0,140))}${String(v||"").length>140?"…":""}</div></div>`).join("");
-  document.querySelectorAll(".sumrow").forEach(r=>r.onclick=()=>{ state.step=+r.dataset.i; state.returnToReview=true; show("s-wizard"); renderStep(); });
+    [7,"Estilo",(state.files.refs.length?state.files.refs.length+" referencia(s)":"Libre")+(matImages().length?(exactOn()?" · producto exacto":" · producto recreado por IA"):"")],[8,"Marca",[m.nombre,m.compania].filter(Boolean).join(" · ")||"—"],[9,"Tono",(a.tono||[]).join(", ")||"Automático"]];
+  $("#summary").innerHTML=rows.map(([i,k,v])=>`<div class="sumrow" data-i="${i}" style="cursor:pointer"><span>${k}</span><div style="white-space:pre-wrap">${esc(String(v||"—").slice(0,160))}${String(v||"").length>160?"…":""}</div></div>`).join("");
+  $$(".sumrow").forEach(r=>r.onclick=()=>{ state.step=+r.dataset.i; state.returnToReview=true; show("s-wizard"); renderStep(); });
   show("s-review"); updateNav();
 }
 
-/* ---------------- Cerebro: estrategia ---------------- */
-const SYSTEM = `Eres un estratega senior de Meta Ads y copywriter de respuesta directa para emprendedores de Latinoamérica (redes de mercadeo, bienestar, servicios, eventos y retos) con presupuestos bajos. Escribes en español de México, claro, humano y persuasivo. Tu trabajo: entregar una campaña COMPLETA que la persona solo copie y pegue en su Administrador de anuncios.
+/* ---------------- Cerebro ---------------- */
+const SYSTEM = `Eres un estratega senior de Meta Ads y copywriter de respuesta directa para emprendedores de Latinoamérica (redes de mercadeo, bienestar, servicios, eventos y retos) con presupuestos bajos. Escribes en español de México, claro, humano y persuasivo. Entregas una campaña COMPLETA que la persona solo copia y pega.
 
-REGLAS DE ESTRATEGIA (no negociables):
-- Presupuesto bajo = enfoque. Hasta 150 MXN/día (o equivalente): 1 campaña, 1 conjunto, 3 anuncios. De 151 a 300: 1 campaña, 1 conjunto, 4 anuncios. Más de 300: 1 campaña, 1 conjunto, 5 anuncios. Nunca dividir en varios conjuntos con presupuesto bajo.
-- Público Advantage+ con sugerencias de público; ubicaciones Advantage+. Explica en una línea por qué no conviene segmentar demasiado con poco presupuesto.
-- Objetivo en Meta según lo que quiere el usuario:
-  * WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Las citas las agenda el agente por WhatsApp.
-  * Registros a evento: recomienda WhatsApp (confirmación y recordatorios por el agente). Menciona el formulario instantáneo (objetivo "Clientes potenciales") solo como alternativa.
-  * Vender en línea: objetivo "Ventas" con sitio web SOLO si tiene píxel instalado con eventos de compra; si no lo sabe, recomienda empezar con WhatsApp y explica por qué.
-- Duración: no tocar la campaña los primeros 3 a 4 días (fase de aprendizaje). Para eventos, empezar 7 a 10 días antes.
-- Da reglas de optimización concretas con cifras basadas en su presupuesto (por ejemplo: cuándo apagar un anuncio, cuándo escalar el presupuesto 20%). Marca como estimación cualquier costo esperado.
+ESTRATEGIA:
+- Recomienda la cantidad de anuncios según presupuesto: hasta 150 MXN/día (o equivalente) 3 anuncios; 151 a 300: 4; más de 300: 5. Todo en 1 campaña y 1 conjunto. Explica en una línea por qué esa cantidad (campo por_que_cantidad).
+- Público Advantage+ con sugerencias; ubicaciones Advantage+.
+- WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Registros a evento: recomienda WhatsApp; formulario instantáneo solo como alternativa. Vender en línea: "Ventas" con sitio web solo si tiene píxel; si no lo sabe, recomienda WhatsApp.
+- No tocar la campaña los primeros 3 a 4 días. Para eventos, empezar 7 a 10 días antes.
+- Reglas de optimización con cifras basadas en su presupuesto. Marca como estimación los costos esperados.
 
-REGLAS DE CREATIVOS Y COPIES:
-- Cada anuncio con un ÁNGULO realmente distinto (por ejemplo: dolor o problema, resultado deseado, curiosidad, autoridad o experiencia, urgencia real, comunidad o pertenencia, oportunidad). Elige los que mejor funcionen para este tipo de promoción.
-- Texto principal: la primera línea es un hook potente de máximo 125 caracteres; después 2 a 5 líneas cortas; cierre con llamada a la acción a WhatsApp o registro. Emojis con moderación.
-- Título: máximo 40 caracteres. Descripción: máximo 30 caracteres. CTA: usa un botón real de Meta (Enviar mensaje, Más información, Registrarte, Comprar, Reservar).
-- texto_en_imagen: máximo 6 palabras, impactante.
-- prompt_imagen: describe en español una imagen publicitaria vertical concreta: sujeto, escena, luz, encuadre, colores, emoción. Fotografía realista de calidad profesional salvo que convenga gráfico. Personas latinoamericanas cuando aparezcan personas. Sin logos de marcas ajenas. El texto debe ir en la zona central segura.
+LIBERTAD Y ADVERTENCIAS (muy importante):
+- Respeta lo que el usuario quiere decir. Usa libremente su nombre, su compañía y sus marcas (texto e imágenes). No bloquees ni suavices su mensaje por tu cuenta.
+- Si un anuncio puede chocar con las políticas de Meta (atributos personales como "¿Tienes sobrepeso?", promesas de cura o resultados médicos, antes y después, promesas de ingresos o "hazte rico", superlativos sin prueba), ESCRÍBELO de todos modos como lo pidió el usuario y llena "advertencia" con el riesgo en una frase, y "version_segura" con una alternativa que conserve la intención. Si no hay riesgo, deja advertencia "" y version_segura null.
+- Promesas de ingresos y de curas: la advertencia debe decir que pueden causar restricción de la cuenta publicitaria completa.
 
-POLÍTICAS DE META (obligatorias, explícalas si algo del usuario las viola):
-- Nada de atributos personales ("¿Tienes sobrepeso?", "¿Sufres diabetes?", "Tú que estás endeudado").
-- Nada de promesas de cura, resultados médicos garantizados ni fotos de antes y después.
-- Oportunidad de negocio: prohibido prometer ingresos, cifras de ganancias, "hazte rico" o "trabaja desde casa y gana $X". Enfócalo en aprendizaje, evento, comunidad, emprendimiento y tecnología.
-- Salud y bienestar: lenguaje de bienestar y hábitos, no diagnósticos.
+CREATIVOS Y COPIES:
+- Cada anuncio con un ÁNGULO distinto (dolor, resultado deseado, curiosidad, autoridad, urgencia real, comunidad, oportunidad…).
+- Texto principal: primera línea hook de máximo 125 caracteres; 2 a 5 líneas cortas; cierre con llamada a la acción. Emojis con moderación.
+- Título máx. 40 caracteres. Descripción máx. 30. CTA: botón real de Meta (Enviar mensaje, Más información, Registrarte, Comprar, Reservar).
+- texto_en_imagen: máximo 6 palabras.
+- prompt_imagen: imagen publicitaria vertical concreta: sujeto, escena, luz, encuadre, colores, emoción. Fotografía realista profesional salvo que convenga gráfico. Personas latinoamericanas cuando aparezcan. Sin logotipos de marcas ajenas (las del usuario sí). Texto en la zona central segura.
 
-NO INVENTES DATOS: si falta un precio, fecha, dirección o dato, escribe [COMPLETA: lo que falta].
+NO INVENTES DATOS: si falta precio, fecha, dirección o dato, escribe [COMPLETA: lo que falta]. Si te adjuntan documentos o imágenes, úsalos como fuente principal de información.
 
-AGENTE DE WHATSAPP: la plataforma del usuario pide 2 prompts:
-1) prompt_personalidad: objetivo del agente, personalidad y tono, y el PROCESO paso a paso de la conversación (saludo, 2 o 3 preguntas para entender a la persona, presentar la solución, manejar objeciones, cierre según el objetivo: agendar, registrar o vender, y cuándo pasar con un humano), reglas (mensajes cortos tipo WhatsApp, una pregunta a la vez, no diagnosticar, no prometer resultados ni ingresos) y qué hacer si no sabe algo.
-2) base_conocimiento: documento completo y ordenado con encabezados en MAYÚSCULAS: información del negocio o producto, qué incluye, precios y promociones, fechas y ubicación, a quién va dirigido, beneficios, al menos 12 preguntas frecuentes con respuesta, al menos 6 objeciones con respuesta, proceso de compra o registro, y datos de contacto. Usa [COMPLETA: …] donde falte información.
+META PASO A PASO (pasos_meta): entre 8 y 12 pasos. Cada paso: "pantalla" (una de: inicio, objetivo, campana, presupuesto, conversion, publico, ubicaciones, anuncio, texto, whatsapp, publicar), "titulo" corto, "tocar" (el botón u opción exacta que se toca, como aparece en Meta en español), "valor" (lo que se escribe o elige; "" si no aplica) y "detalle" (1 o 2 frases simples).
 
-Devuelve SOLO un objeto JSON válido con esta forma exacta:
+AGENTE DE WHATSAPP: 2 prompts:
+1) prompt_personalidad: objetivo, personalidad y tono, PROCESO paso a paso (saludo, 2 o 3 preguntas, presentar la solución, manejar objeciones, cierre según el objetivo, cuándo pasar con humano), reglas (mensajes cortos tipo WhatsApp, una pregunta a la vez) y qué hacer si no sabe algo.
+2) base_conocimiento: documento ordenado con encabezados en MAYÚSCULAS: información del negocio/producto, qué incluye, precios y promociones, fechas y ubicación, a quién va dirigido, beneficios, al menos 12 preguntas frecuentes con respuesta, al menos 6 objeciones con respuesta, proceso de compra o registro, contacto. [COMPLETA: …] donde falte.
+
+Devuelve SOLO un JSON válido con esta forma exacta:
 {
- "resumen": "2 o 3 líneas: la estrategia en lenguaje simple",
- "estrategia": {
-   "objetivo_meta": "", "por_que": "", "estructura": "", "presupuesto": "", "duracion": "",
-   "publico": "", "ubicaciones": "", "reglas": ["…"], "metricas": ["…"]
- },
- "anuncios": [
-   {"angulo":"", "por_que_funciona":"", "texto_principal":"", "titulo":"", "descripcion":"", "cta":"", "texto_en_imagen":"", "prompt_imagen":""}
- ],
- "pasos_meta": [ {"titulo":"", "detalle":"qué tocar y qué valor poner exactamente, con los nombres de los botones en español"} ],
- "mensaje_prellenado": "el mensaje que aparece escrito cuando la persona abre WhatsApp desde el anuncio",
+ "en_sencillo": ["4 frases muy simples: qué vas a hacer, cuánto vas a invertir y cuánto tiempo, qué resultado esperar, qué hacer después de publicar"],
+ "resumen": "2 líneas",
+ "estrategia": {"objetivo_meta":"", "por_que":"", "estructura":"", "presupuesto":"", "duracion":"", "publico":"", "ubicaciones":"", "reglas":["…"], "metricas":["…"]},
+ "por_que_cantidad": "",
+ "anuncios": [{"angulo":"", "por_que_funciona":"", "texto_principal":"", "titulo":"", "descripcion":"", "cta":"", "texto_en_imagen":"", "prompt_imagen":"", "advertencia":"", "version_segura": null}],
+ "pasos_meta": [{"pantalla":"", "titulo":"", "tocar":"", "valor":"", "detalle":""}],
+ "mensaje_prellenado": "",
  "agente": {"prompt_personalidad":"", "base_conocimiento":""},
- "advertencias": ["riesgos de políticas o datos faltantes, si hay"]
-}`;
+ "advertencias": ["datos faltantes o riesgos generales, si hay"]
+}
+version_segura, cuando aplique, es {"texto_principal":"", "titulo":""}.`;
 
-function briefFromAnswers(){
-  const a=state.answers, b=a.presupuesto||{};
+function briefFrom(c){
+  const a=c.answers, b=a.presupuesto||{}, m=a.marca||{}, mats=c.material||[];
   return `DATOS DEL USUARIO
 - Tipo de promoción: ${a.tipo}
-- Descripción: ${a.descripcion}
+- Descripción: ${a.descripcion||"(ver archivos adjuntos)"}
 - Precio/oferta/fecha/lugar: ${a.oferta||"no indicó"}
 - Objetivo: ${a.objetivo}
 - Ubicación: ${a.ubicacion}
 - Público: ${a.publico||"no indicó, decide tú"}
 - Presupuesto: ${b.diario} ${b.moneda} diarios durante ${b.dias} días (total ${b.diario*b.dias} ${b.moneda})
-- Fotos propias: ${state.photos.length?state.photos.length+" (las imágenes se generarán usándolas como referencia; describe escenas que integren ese producto/persona/lugar real)":"ninguna, la IA crea las imágenes"}
-- Referencias de estilo: ${state.refs.length?state.refs.length+" imagen(es) adjunta(s) después de las fotos propias. Analiza su estilo visual (colores, composición, tipografía, tipo de foto, emoción) y aplícalo a los prompt_imagen SIN copiar marcas, logotipos, personas reconocibles ni textos. En por_que_funciona menciona qué tomaste de la referencia.":"ninguna"}
-- Marca/nombre: ${(a.marca&&a.marca.nombre)||""}
-- WhatsApp: ${(a.marca&&a.marca.whatsapp)||"no indicó"}
+- Archivos adjuntos del usuario: ${mats.length? mats.map(f=>f.name).join(", ")+" (adjuntos a este mensaje; léelos y úsalos)":"ninguno"}
+- Modo de imagen: ${c.exact? "PRODUCTO EXACTO: la foto real del producto se coloca encima después. En prompt_imagen describe SOLO fondo y escena con una superficie o pedestal vacío al centro de la parte inferior; NO describas el producto ni envases. El texto va en el tercio superior." : (mats.some(f=>/^image\//.test(f.type))? "La IA usará las imágenes adjuntas (producto o flyer) como base y las mejorará para el anuncio.":"La IA crea las imágenes desde cero.")}
+- Referencias de estilo: ${(c.refs||[]).length? (c.refs.length+" imagen(es) adjunta(s) al final. Toma su estilo visual (colores, composición, tipografía, tipo de foto) sin copiar marcas, personas ni textos."):"ninguna"}
+- Nombre: ${m.nombre||""}
+- Compañía o marcas del usuario (úsalas libremente): ${m.compania||"no indicó"}
+- WhatsApp: ${m.whatsapp||"no indicó"}
 - Tono: ${(a.tono||[]).join(", ")||"elige el mejor"}
 Fecha de hoy: ${new Date().toLocaleDateString("es-MX",{day:"numeric",month:"long",year:"numeric"})}`;
 }
-
-const MSGS=["Analizando tu producto…","Buscando los mejores ángulos…","Escribiendo hooks que detienen el scroll…","Calculando tu presupuesto…","Preparando el paso a paso en Meta…","Entrenando a tu agente…"];
+async function partsFor(c){
+  const parts=[];
+  for(const f of (c.material||[])){
+    try{
+      if(/^image\//.test(f.type)) parts.push({type:"input_image",image_url:await shrink(f.blob,1024)});
+      else if(f.type==="application/pdf") parts.push({type:"input_file",filename:f.name,file_data:await blobToDataURL(f.blob)});
+      else if(/^text\//.test(f.type)) parts.push({type:"input_text",text:`ARCHIVO ${f.name}:\n`+(await f.blob.text()).slice(0,20000)});
+    }catch(e){}
+  }
+  for(const r of (c.refs||[])) try{ parts.push({type:"input_image",image_url:await shrink(r,768)}); }catch(e){}
+  return parts;
+}
+function newCampaign(){
+  const a=JSON.parse(JSON.stringify(state.answers));
+  const name=(a.descripcion||(state.files.material[0]&&state.files.material[0].name)||a.tipo||"Campaña").replace(/\s+/g," ").slice(0,48);
+  return { id:uid(), v:2, created:Date.now(), name, answers:a, material:state.files.material.map(f=>({...f})), refs:[...state.files.refs], exact:exactOn(),
+    plan:null, ads:[], costs:{}, agent:{versions:[],cur:0,chat:[]}, tour:0, metaMode:"tour" };
+}
+const MSGS=["Leyendo tu información…","Buscando los mejores ángulos…","Escribiendo hooks que detienen el scroll…","Calculando tu presupuesto…","Preparando el recorrido en Meta…","Entrenando a tu agente…"];
 async function generate(){
   show("s-loading"); $("#loaderr").textContent=""; $("#btnRetry").classList.add("hidden");
   let i=0; $("#loadmsg").textContent=MSGS[0]; const t=setInterval(()=>{ i=(i+1)%MSGS.length; $("#loadmsg").textContent=MSGS[i]; },2600);
   try{
     if(!state.models.text) await detectModels();
-    const imgs = await Promise.all([...state.photos,...state.refs].map(f=>shrink(f,768).catch(()=>null)));
-    const plan=await genJSON(SYSTEM, briefFromAnswers(), imgs.filter(Boolean));
+    if(!state.c || state.c.plan) state.c=newCampaign();
+    const c=state.c;
+    const plan=await llm({system:SYSTEM, user:briefFrom(c), parts:await partsFor(c), json:true});
     if(!plan||!Array.isArray(plan.anuncios)||!plan.anuncios.length) throw new Error("La respuesta llegó incompleta. Intenta de nuevo.");
-    state.plan=plan; state.images={};
-    store.set(LS.last,{plan,answers:state.answers,date:Date.now()});
+    c.plan=plan; c.ads=plan.anuncios.map(x=>({...x, img:null, bg:null, reserva:false}));
+    c.agent={versions:[{p1:(plan.agente||{}).prompt_personalidad||"", p2:(plan.agente||{}).base_conocimiento||"", note:"Versión inicial", t:Date.now()}], cur:0, chat:[]};
+    await saveCampaign(true);
     clearInterval(t); renderResults(); show("s-results"); generateAllImages();
   }catch(e){ clearInterval(t); $("#loadmsg").textContent="Algo falló"; $("#loaderr").textContent=friendly(e); $("#btnRetry").classList.remove("hidden"); }
 }
 $("#btnRetry").onclick=generate;
 
-/* ---------------- Resultados ---------------- */
-function field(label, text){ return `<div class="field"><div class="lbl">${esc(label)}</div><div class="txt">${esc(text)}</div><button class="copy" data-copy="${esc(text)}">Copiar</button></div>`; }
-function renderResults(){
-  const p=state.plan, e=p.estrategia||{}, a=state.answers;
-  $("#p-plan").innerHTML=`
-    <div class="card hero"><div class="eyebrow">Tu estrategia</div><h2 style="font-size:22px;margin:8px 0 6px">${esc(e.objetivo_meta||"")}</h2><div style="color:#ddd;white-space:pre-wrap">${esc(p.resumen||"")}</div></div>
-    <div class="card">
-      ${[["Por qué este objetivo",e.por_que],["Estructura",e.estructura],["Presupuesto",e.presupuesto],["Duración",e.duracion],["Público",e.publico],["Ubicaciones",e.ubicaciones]].filter(x=>x[1]).map(([k,v])=>`<div class="kv"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join("")}
-    </div>
-    ${(e.reglas||[]).length?`<div class="card"><div class="kv"><div class="k">Reglas para optimizar</div><ul class="clean">${e.reglas.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
-    ${(e.metricas||[]).length?`<div class="card"><div class="kv"><div class="k">Qué medir</div><ul class="clean">${e.metricas.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
-    ${(p.advertencias||[]).length?`<div class="card warn"><div class="kv"><div class="k" style="color:#ffcf6b">Antes de publicar</div><ul class="clean">${p.advertencias.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
-    <button class="btn line full" id="copyAll" style="margin-top:14px">Copiar todo el paquete</button>`;
+/* ---------------- Composición producto exacto ---------------- */
+const loadImg = b => new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=urlFor(b); });
+function cutout(img){
+  const max=900, s=Math.min(1,max/Math.max(img.width,img.height)); const w=Math.round(img.width*s), h=Math.round(img.height*s);
+  const c=document.createElement("canvas"); c.width=w; c.height=h; const x=c.getContext("2d"); x.drawImage(img,0,0,w,h);
+  const d=x.getImageData(0,0,w,h), p=d.data;
+  const px=(X,Y)=>{ const k=(Y*w+X)*4; return [p[k],p[k+1],p[k+2]]; };
+  const corners=[px(2,2),px(w-3,2),px(2,h-3),px(w-3,h-3)];
+  const avg=[0,1,2].map(k=>corners.reduce((a,c)=>a+c[k],0)/4);
+  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+  if(Math.max(...corners.map(c=>dist(c,avg)))>36) return {canvas:c, cut:false};
+  const tol=42, seen=new Uint8Array(w*h), q=[];
+  for(let X=0;X<w;X++){ q.push(X, (h-1)*w+X); } for(let Y=0;Y<h;Y++){ q.push(Y*w, Y*w+w-1); }
+  while(q.length){ const i=q.pop(); if(seen[i]) continue; seen[i]=1; const k=i*4; if(dist([p[k],p[k+1],p[k+2]],avg)>tol) continue; p[k+3]=0;
+    const X=i%w, Y=(i/w)|0; if(X>0)q.push(i-1); if(X<w-1)q.push(i+1); if(Y>0)q.push(i-w); if(Y<h-1)q.push(i+w); }
+  // borde suave
+  for(let i=0;i<w*h;i++){ if(p[i*4+3]===0) continue; const X=i%w,Y=(i/w)|0; let n=0; if(X>0&&p[(i-1)*4+3]===0)n++; if(X<w-1&&p[(i+1)*4+3]===0)n++; if(Y>0&&p[(i-w)*4+3]===0)n++; if(Y<h-1&&p[(i+w)*4+3]===0)n++; if(n) p[i*4+3]=Math.min(p[i*4+3],255-n*55); }
+  x.putImageData(d,0,0);
+  let x0=w,y0=h,x1=0,y1=0; for(let Y=0;Y<h;Y++)for(let X=0;X<w;X++) if(p[(Y*w+X)*4+3]>20){ if(X<x0)x0=X; if(X>x1)x1=X; if(Y<y0)y0=Y; if(Y>y1)y1=Y; }
+  if(x1<=x0||y1<=y0) return {canvas:c,cut:false};
+  const o=document.createElement("canvas"); o.width=x1-x0+1; o.height=y1-y0+1; o.getContext("2d").drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);
+  return {canvas:o, cut:true};
+}
+async function composite(bgBlob, productBlob){
+  const bg=await loadImg(bgBlob), pr=await loadImg(productBlob);
+  const W=bg.width, H=bg.height; const c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"); x.drawImage(bg,0,0);
+  const {canvas:p, cut}=cutout(pr);
+  const maxH=H*0.44, maxW=W*0.7; const s=Math.min(maxH/p.height, maxW/p.width); const pw=p.width*s, ph=p.height*s;
+  const cx=W/2, bottom=H*0.86, px=cx-pw/2, py=bottom-ph;
+  x.save(); x.filter="blur(22px)"; x.fillStyle="rgba(0,0,0,.55)"; x.beginPath(); x.ellipse(cx,bottom-4,pw*0.48,ph*0.06+10,0,0,6.28); x.fill(); x.restore();
+  if(cut){ x.save(); x.shadowColor="rgba(0,0,0,.45)"; x.shadowBlur=30; x.shadowOffsetY=12; x.drawImage(p,px,py,pw,ph); x.restore(); }
+  else { const r=28, pad=14; x.save(); x.shadowColor="rgba(0,0,0,.5)"; x.shadowBlur=40; x.fillStyle="#fff"; roundRect(x,px-pad,py-pad,pw+pad*2,ph+pad*2,r+pad); x.fill(); x.restore();
+    x.save(); roundRect(x,px,py,pw,ph,r); x.clip(); x.drawImage(p,px,py,pw,ph); x.restore(); }
+  return new Promise(r=>c.toBlob(r,"image/jpeg",.92));
+}
+function roundRect(x,X,Y,w,h,r){ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); }
 
-  $("#p-ads").innerHTML = `<p class="sub" style="margin-bottom:14px">${p.anuncios.length} anuncios, un ángulo distinto cada uno. Súbelos todos al mismo conjunto.</p>` +
-    p.anuncios.map((ad,i)=>`
+/* ---------------- Imágenes ---------------- */
+function imagePrompt(ad, c){
+  const mats=(c.material||[]).filter(f=>/^image\//.test(f.type)); const hasRef=(c.refs||[]).length>0;
+  let p=`${ad.prompt_imagen}\n\nFormato: anuncio vertical para Facebook e Instagram, estética premium y moderna.`;
+  if(ad.texto_en_imagen) p+=` Incluye este texto exacto en español, grande, legible y bien escrito: "${ad.texto_en_imagen}".`;
+  p+=` Deja márgenes amplios arriba y abajo (la imagen se recortará a 4:5). Sin marcas de agua.`;
+  if(c.exact) p+=` IMPORTANTE: no dibujes ningún producto, frasco, envase ni empaque. Crea solo el fondo y la escena con una superficie o pedestal vacío centrado en la parte inferior (ocupa el 45% inferior), donde después se colocará la foto real del producto. Pon el texto en el tercio superior.`;
+  else if(mats.length) p+=` La primera imagen adjunta es material real del usuario (producto o flyer): mantenlo fiel (forma, etiqueta, colores, datos) y mejóralo para que funcione como anuncio.`;
+  if(hasRef) p+=` La ${!c.exact&&mats.length?"segunda":"primera"} imagen adjunta es solo referencia de estilo: no copies su contenido, marcas, personas ni textos.`;
+  return p;
+}
+async function makeImage(i, instruction){
+  const c=state.c, ad=c.ads[i]; pending.add(c.id+":"+i); const box=state.c===c?$("#img"+i):null;
+  if(box) box.innerHTML=`<div class="st"><div class="mini"></div>${instruction?"Editando imagen…":"Creando imagen…"}</div>`;
+  setDl(i,false);
+  try{
+    const mats=(c.material||[]).filter(f=>/^image\//.test(f.type)); const ref=(c.refs||[]).length? c.refs[i%c.refs.length]:null;
+    if(instruction){
+      const base = c.exact && ad.bg ? ad.bg : ad.img;
+      const ins = `Edita esta imagen de anuncio: ${instruction}. Mantén todo lo demás igual.${c.exact?" No agregues ningún producto, frasco ni envase; conserva la superficie vacía en la parte inferior.":""}`;
+      const out = await genImage(ins,[base]);
+      if(c.exact){ ad.bg=out; ad.img=await composite(out, mats[i%mats.length].blob); } else ad.img=out;
+    } else if(c.exact && mats.length){
+      ad.bg = await genImage(imagePrompt(ad,c), ref?[ref]:[]);
+      ad.img = await composite(ad.bg, mats[i%mats.length].blob);
+    } else {
+      const inputs=[]; if(mats.length) inputs.push(mats[i%mats.length].blob); if(ref) inputs.push(ref);
+      ad.img = await genImage(imagePrompt(ad,c), inputs); ad.bg=null;
+    }
+    pending.delete(c.id+":"+i); idb.put(c).catch(()=>{}); if(state.c===c) paintImage(i);
+  }catch(e){ pending.delete(c.id+":"+i); if(box) box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" data-retry="${i}">Reintentar</button></div>`; const b=document.querySelector(`[data-retry="${i}"]`); if(b) b.onclick=()=>makeImage(i, instruction); if(ad.img) setDl(i,true); }
+}
+function paintImage(i){ const box=$("#img"+i), ad=state.c.ads[i]; if(!box) return; if(ad.img){ box.innerHTML=`<img alt="Creativo ${i+1}" src="${urlFor(ad.img)}">`; setDl(i,true);} }
+function setDl(i,on){ $$(`[data-need-img="${i}"]`).forEach(b=>b.disabled=!on); }
+async function generateAllImages(){
+  const c=state.c, todo=c.ads.map((a,i)=>i).filter(i=>!c.ads[i].img); let k=0;
+  todo.forEach(i=>{ pending.add(c.id+":"+i); const b=$("#img"+i); if(b) b.innerHTML=`<div class="st"><div class="mini"></div>En cola…</div>`; });
+  const worker=async()=>{ while(k<todo.length){ const i=todo[k++]; await makeImage(i); } };
+  await Promise.all([worker(),worker()]);
+  if(c.ads.some(a=>a.img)){ $("#dlHint")&&$("#dlHint").classList.remove("hidden"); if(store.get(LS.drive)&&GOOGLE_CLIENT_ID) driveSave(true); }
+}
+function download(blob, name){ const a=document.createElement("a"); a.href=urlFor(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+async function cropTo(i, fmt){
+  const src=state.c.ads[i].img; if(!src) return null; const img=await loadImg(src);
+  const c=document.createElement("canvas"), x=c.getContext("2d");
+  if(fmt==="4x5"){ c.width=1080; c.height=1350; const s=Math.max(1080/img.width,1350/img.height); const w=img.width*s,h=img.height*s; x.drawImage(img,(1080-w)/2,(1350-h)/2,w,h); }
+  else { c.width=1080; c.height=1920; x.fillStyle="#000"; x.fillRect(0,0,1080,1920); x.filter="blur(40px) brightness(.5)"; const sb=Math.max(1080/img.width,1920/img.height); x.drawImage(img,(1080-img.width*sb)/2,(1920-img.height*sb)/2,img.width*sb,img.height*sb); x.filter="none"; const s=1080/img.width, h=img.height*s; x.drawImage(img,0,(1920-h)/2,1080,h); }
+  return new Promise(r=>c.toBlob(r,"image/jpeg",.92));
+}
+async function dl(i,fmt){ const b=await cropTo(i,fmt); if(b){ download(b,`anuncio-${i+1}-${fmt}.jpg`); toast("Imagen descargada"); } }
+
+/* ---------------- Anuncio extra ---------------- */
+async function addAd(btn){
+  const c=state.c; btn.disabled=true; btn.textContent="Creando anuncio…";
+  try{
+    const sys = SYSTEM + `\n\nAHORA SOLO necesitas crear UN anuncio adicional de reserva con un ángulo DISTINTO a estos: ${c.ads.map(a=>a.angulo).join(", ")}. Devuelve SOLO el JSON de ese anuncio con la misma forma que un elemento de "anuncios".`;
+    const ad = await llm({system:sys, user:briefFrom(c)+`\n\nEstrategia ya definida: ${c.plan.resumen||""}`, json:true});
+    const a = ad.anuncios? ad.anuncios[0] : ad;
+    c.ads.push({...a, img:null, bg:null, reserva:true}); await saveCampaign(true);
+    renderAds(); $$(".tab").find(t=>t.dataset.p==="p-ads").click();
+    makeImage(c.ads.length-1); setTimeout(()=>$("#ad"+(c.ads.length-1)).scrollIntoView({behavior:"smooth"}),100);
+  }catch(e){ toast(friendly(e)); btn.disabled=false; btn.textContent="+ Agregar anuncio de reserva"; }
+}
+
+/* ---------------- Resultados ---------------- */
+function renderResults(){ renderPlan(); renderAds(); renderMeta(); renderAgent(); $$(".tab").forEach((t,i)=>t.classList.toggle("on",i===0)); $$(".pane").forEach((p,i)=>p.classList.toggle("on",i===0)); }
+$$(".tab").forEach(t=>t.onclick=()=>{ $$(".tab").forEach(x=>x.classList.toggle("on",x===t)); $$(".pane").forEach(p=>p.classList.toggle("on",p.id===t.dataset.p)); });
+
+function renderPlan(){
+  const c=state.c, p=c.plan, e=p.estrategia||{};
+  const simple = (p.en_sencillo&&p.en_sencillo.length? p.en_sencillo : [p.resumen]).filter(Boolean);
+  $("#p-plan").innerHTML=`
+    <div class="costpill" id="campCost"></div>
+    <div class="card hero"><div class="eyebrow">En sencillo</div><h2 style="font-size:22px;margin:8px 0 2px">${esc(e.objetivo_meta||"")}</h2>
+      <ul class="simple">${simple.map((s,i)=>`<li><i>${i+1}</i><span>${esc(s)}</span></li>`).join("")}</ul></div>
+    ${(p.advertencias||[]).length?`<div class="card warn"><div class="kv"><div class="k" style="color:#ffcf6b">Antes de publicar</div><ul class="clean">${p.advertencias.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
+    <details class="card"><summary>Ver detalle de la estrategia</summary><div style="margin-top:14px">
+      ${[["Por qué este objetivo",e.por_que],["Estructura",e.estructura],["Presupuesto",e.presupuesto],["Duración",e.duracion],["Público",e.publico],["Ubicaciones",e.ubicaciones]].filter(x=>x[1]).map(([k,v])=>`<div class="kv"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join("")}
+      ${(e.reglas||[]).length?`<div class="kv"><div class="k">Reglas para optimizar</div><ul class="clean">${e.reglas.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>`:""}
+      ${(e.metricas||[]).length?`<div class="kv"><div class="k">Qué medir</div><ul class="clean">${e.metricas.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>`:""}
+    </div></details>
+    <div class="row" style="margin-top:14px"><button class="btn line sm" id="copyAll">Copiar todo el paquete</button>${GOOGLE_CLIENT_ID?`<button class="btn line sm" id="toDrive">Guardar en Drive</button>`:""}</div>`;
+  paintCost();
+  $("#copyAll").onclick=()=>copyText(packageText());
+  if($("#toDrive")) $("#toDrive").onclick=()=>driveSave(false);
+}
+function renderAds(){
+  const c=state.c, p=c.plan; const main=c.ads.filter(a=>!a.reserva).length;
+  $("#p-ads").innerHTML = `<div class="card hero" style="padding:14px 16px"><b>Te recomiendo ${main} anuncios</b><div class="note" style="margin-top:4px">${esc(p.por_que_cantidad||"Súbelos todos al mismo conjunto.")}</div></div>
+    <div class="card warn hidden" id="dlHint" style="padding:12px 16px"><div class="note" style="margin:0">Tus campañas se guardan en este teléfono. Si borras los datos del navegador se pierden: descarga tus imágenes.</div><button class="btn sm" id="dlAll" style="margin-top:10px">Descargar todas (4:5)</button></div>` +
+    c.ads.map((ad,i)=>`
     <div class="card ad" id="ad${i}">
       <div class="img" id="img${i}"><div class="st"><div class="mini"></div>Creando imagen…</div></div>
       <div class="body">
-        <span class="tag">Anuncio ${i+1} · ${esc(ad.angulo)}</span>
+        <span class="tag">${ad.reserva?"Reserva · ":""}Anuncio ${i+1} · ${esc(ad.angulo)}</span>
         <div class="note" style="margin-top:0">${esc(ad.por_que_funciona||"")}</div>
         ${field("Texto principal",ad.texto_principal)}
         ${field("Título",ad.titulo)}
         ${field("Descripción",ad.descripcion)}
         <div class="field"><div class="lbl">Botón</div><div class="txt">${esc(ad.cta)}</div></div>
+        ${ad.advertencia?`<div class="warnline">⚠️ ${esc(ad.advertencia)}</div>`:""}
+        ${ad.version_segura&&(ad.version_segura.texto_principal||ad.version_segura.titulo)?`<details class="safe"><summary>Ver versión segura</summary>${ad.version_segura.texto_principal?field("Texto principal (seguro)",ad.version_segura.texto_principal):""}${ad.version_segura.titulo?field("Título (seguro)",ad.version_segura.titulo):""}</details>`:""}
         <div class="row">
-          <button class="btn sm" data-dl="${i}" disabled>Descargar 4:5</button>
-          <button class="btn line sm" data-dl9="${i}" disabled>9:16 historias</button>
+          <button class="btn sm" data-dl="${i}" data-need-img="${i}" disabled>Descargar 4:5</button>
+          <button class="btn line sm" data-dl9="${i}" data-need-img="${i}" disabled>9:16</button>
+          <button class="btn line sm" data-edit="${i}" data-need-img="${i}" disabled>Editar imagen</button>
           <button class="btn line sm" data-regen="${i}">Otra versión</button>
         </div>
-        <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad))}</details>
+        <div class="edit" id="edit${i}">
+          <textarea id="editTxt${i}" style="min-height:80px" placeholder="¿Qué cambio? Ej. el producto más grande, fondo más claro, quita el texto…"></textarea>
+          <div class="row">${micButton("editMic"+i)}<button class="btn sm" data-doedit="${i}">Aplicar cambio · ≈ ${usdFmt(avgImage())} USD</button></div>
+          <div class="note" id="editLbl${i}"></div>
+        </div>
+        <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad,c))}</details>
       </div>
-    </div>`).join("");
+    </div>`).join("") +
+    `<button class="btn line full" id="addAd" style="margin-top:14px">+ Agregar anuncio de reserva</button>
+     <p class="note" style="text-align:center">≈ ${usdFmt(avgImage()+0.01)} USD por anuncio extra. Úsalos cuando uno de los principales se canse; no los subas todos el día uno.</p>`;
+  bindCopies($("#p-ads"));
+  $$("[data-dl]").forEach(b=>b.onclick=()=>dl(+b.dataset.dl,"4x5"));
+  $$("[data-dl9]").forEach(b=>b.onclick=()=>dl(+b.dataset.dl9,"9x16"));
+  $$("[data-regen]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.regen));
+  $$("[data-edit]").forEach(b=>b.onclick=()=>$("#edit"+b.dataset.edit).classList.toggle("on"));
+  $$("[data-doedit]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.doedit; const t=$("#editTxt"+i).value.trim(); if(!t){ toast("Escribe qué quieres cambiar"); return; } $("#edit"+i).classList.remove("on"); makeImage(i,t); });
+  c.ads.forEach((_,i)=>bindVoice($("#editMic"+i), t=>$("#editLbl"+i).textContent=t, t=>{ const x=$("#editTxt"+i); x.value=(x.value?x.value+" ":"")+t; }));
+  $("#addAd").onclick=e=>addAd(e.currentTarget);
+  $("#dlAll").onclick=async()=>{ for(let i=0;i<c.ads.length;i++){ if(c.ads[i].img){ await dl(i,"4x5"); await new Promise(r=>setTimeout(r,600)); } } };
+  c.ads.forEach((ad,i)=>{ if(ad.img) paintImage(i); else if(pending.has(c.id+":"+i)) $("#img"+i).innerHTML=`<div class="st"><div class="mini"></div>Creando imagen…</div>`; else $("#img"+i).innerHTML=`<div class="st"><button class="btn line sm" data-mk="${i}">Crear imagen</button></div>`; });
+  $$("[data-mk]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.mk));
+  if(c.ads.some(a=>a.img)) $("#dlHint").classList.remove("hidden");
+}
 
-  $("#p-meta").innerHTML=`<div class="card"><ol class="steps">${(p.pasos_meta||[]).map(s=>`<li><b>${esc(s.titulo)}</b><div>${esc(s.detalle)}</div></li>`).join("")}</ol></div>
-    ${p.mensaje_prellenado?`<div class="card"><div class="kv"><div class="k">Mensaje de WhatsApp prellenado</div></div>${field("Pégalo en la plantilla de mensaje",p.mensaje_prellenado)}</div>`:""}
-    <a class="btn full" href="https://adsmanager.facebook.com/" target="_blank" rel="noopener" style="margin-top:14px;text-decoration:none">Abrir Administrador de anuncios ↗</a>`;
+/* ---- Meta: recorrido ---- */
+const PANT = {inicio:"Inicio · Administrador de anuncios", objetivo:"Elige un objetivo", campana:"Campaña", presupuesto:"Presupuesto y calendario", conversion:"Conversión", publico:"Público", ubicaciones:"Ubicaciones", anuncio:"Anuncio", texto:"Contenido del anuncio", whatsapp:"Plantilla de mensaje", publicar:"Revisar y publicar"};
+function renderMeta(){
+  const c=state.c, p=c.plan, steps=p.pasos_meta||[];
+  const mode=c.metaMode||"tour";
+  let h=`<div class="seg"><button data-mm="tour" class="${mode==="tour"?"on":""}">Recorrido guiado</button><button data-mm="list" class="${mode==="list"?"on":""}">Ya sé usar Meta</button></div>`;
+  if(mode==="tour" && steps.length){
+    const k=Math.min(c.tour||0, steps.length-1), s=steps[k];
+    h+=`<div class="tourCount">Paso ${k+1} de ${steps.length}</div>
+      <div class="mock"><div class="bar"><i></i><i></i><i></i><span>Meta · Administrador de anuncios</span></div>
+        <div class="scr"><h4>${esc(PANT[s.pantalla]||s.titulo)}</h4><div class="sk m"></div><div class="sk s"></div>
+          <div class="hit"><small>Toca</small>${esc(s.tocar||s.titulo)}<span class="hand">👆</span></div>
+          ${s.valor?`<div class="hit" style="animation:none;border-style:dashed"><small>Escribe o elige</small>${esc(s.valor)}</div>`:""}
+          <div class="sk"></div><div class="sk s"></div></div></div>
+      <div class="card"><b>${esc(s.titulo)}</b><div style="color:#d6d6d6;margin-top:4px;white-space:pre-wrap">${esc(s.detalle||"")}</div>${s.valor?field("Valor",s.valor):""}</div>
+      <div class="tourNav"><button class="back" id="tPrev" ${k===0?"disabled":""}>←</button><button class="btn" id="tNext">${k===steps.length-1?"Terminé ✓":"Siguiente paso"}</button></div>
+      <p class="note">Simulación aproximada: Meta cambia su diseño seguido, pero los nombres de las opciones se mantienen.</p>`;
+  } else {
+    h+=`<div class="card"><ol class="steps">${steps.map(s=>`<li><b>${esc(s.titulo)}</b><div>${esc((s.tocar?"Toca: "+s.tocar+". ":"")+(s.detalle||""))}</div>${s.valor?field("Valor",s.valor):""}</li>`).join("")}</ol></div>`;
+  }
+  if(p.mensaje_prellenado) h+=`<div class="card"><div class="kv"><div class="k">Mensaje de WhatsApp prellenado</div></div>${field("Pégalo en la plantilla de mensaje",p.mensaje_prellenado)}</div>`;
+  h+=`<a class="btn full" href="https://adsmanager.facebook.com/" target="_blank" rel="noopener" style="margin-top:14px;text-decoration:none">Abrir Administrador de anuncios ↗</a>`;
+  $("#p-meta").innerHTML=h; bindCopies($("#p-meta"));
+  $$("[data-mm]").forEach(b=>b.onclick=()=>{ c.metaMode=b.dataset.mm; saveCampaign(); renderMeta(); });
+  if($("#tPrev")) $("#tPrev").onclick=()=>{ c.tour=Math.max(0,(c.tour||0)-1); saveCampaign(); renderMeta(); };
+  if($("#tNext")) $("#tNext").onclick=()=>{ if((c.tour||0)>=steps.length-1){ toast("¡Campaña lista! 🚀"); return; } c.tour=(c.tour||0)+1; saveCampaign(); renderMeta(); scrollTo({top:0,behavior:"smooth"}); };
+}
 
-  const ag=p.agente||{};
-  $("#p-agent").innerHTML=`<p class="sub">Los 2 prompts para crear tu agente en Celion Connect.</p>
-    <div class="card"><div class="eyebrow">Prompt 1 · Objetivo, personalidad y proceso</div>${field("Pega esto en el campo de comportamiento",ag.prompt_personalidad||"")}</div>
+/* ---- Agente: prompts + simulador ---- */
+const curV = () => state.c.agent.versions[state.c.agent.cur];
+const agentSystem = v => `${v.p1}\n\n=== BASE DE CONOCIMIENTO ===\n${v.p2}\n\n(Estás respondiendo por WhatsApp a un posible cliente. Mensajes cortos y naturales.)`;
+const PERSONAS=[["Interesado","Le interesa y quiere saber cómo comprar o registrarse, con dudas prácticas."],["Escéptico","Duda que funcione y pide pruebas o garantías."],["Solo precio","Lo primero que pregunta es el precio y casi nada más."],["Objeción de dinero","Le parece caro o dice que ahorita no tiene dinero."],["Se quiere ir","Contesta poco y dice 'lo voy a pensar'."]];
+let simBusy=false, selMsg=-1, testResult=null;
+function renderAgent(){
+  const c=state.c, A=c.agent, v=curV();
+  $("#p-agent").innerHTML=`
+    <p class="sub">Prueba a tu agente como si fueras un cliente. Si una respuesta no te gusta, tócala y dile cómo debió contestar: Cel.IA ajusta el prompt sola.</p>
+    <div class="phone">
+      <div class="top"><div class="av">${esc(((c.answers.marca||{}).nombre||"A")[0].toUpperCase())}</div><div>${esc((c.answers.marca||{}).nombre||"Tu agente")}<small>Simulador · versión ${A.cur+1}</small></div></div>
+      <div class="msgs" id="msgs">${A.chat.length? A.chat.map((m,i)=>`<div class="bub ${m.role==="user"?"u":"a"} ${i===selMsg?"sel":""}" data-m="${i}">${esc(m.content)}</div>`).join("") : `<div class="note" style="text-align:center;margin:auto">Escribe como si fueras un cliente.<br>Ej. "Hola, vi su anuncio, ¿cuánto cuesta?"</div>`}${simBusy?`<div class="bub a typing">escribiendo…</div>`:""}</div>
+      <div class="chatin">${micButton("chatMic")}<input type="text" id="chatIn" placeholder="Escribe un mensaje"><button class="send" id="chatSend">➤</button></div>
+    </div>
+    <div class="note" id="chatLbl"></div>
+    <div class="card fix ${selMsg>=0?"":"hidden"}" id="fixBox">
+      <b>Corregir esta respuesta</b>
+      <textarea id="fixTxt" style="min-height:90px;margin-top:10px" placeholder="¿Cómo debió contestar? Ej. más corto, pregúntale su nombre primero, no des el precio hasta que agende…"></textarea>
+      <div class="row">${micButton("fixMic")}<button class="btn sm" id="fixGo">Ajustar mi agente</button><button class="btn line sm" id="fixCancel">Cancelar</button></div>
+      <div class="note" id="fixLbl"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="testGo">Pon a prueba a mi agente</button><button class="btn line sm" id="chatReset">Reiniciar chat</button></div>
+    <div id="testBox"></div>
+
+    <div class="card" style="margin-top:18px"><div class="eyebrow">Prompt 1 · Objetivo, personalidad y proceso</div>${field("Pega esto en Celion Connect (comportamiento)",v.p1)}</div>
     <div class="card"><div class="eyebrow">Prompt 2 · Base de conocimiento</div>
       <p class="note">Descárgalo en PDF y súbelo como base de datos. Antes, completa lo que diga [COMPLETA].</p>
       <button class="btn full" id="dlPdf" style="margin-top:6px">Descargar PDF</button>
-      <details><summary>Ver texto</summary>${field("Base de conocimiento",ag.base_conocimiento||"")}</details>
-    </div>`;
-
-  document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copyText(b.dataset.copy,b));
-  document.querySelectorAll("[data-dl]").forEach(b=>b.onclick=()=>download(+b.dataset.dl,"4x5"));
-  document.querySelectorAll("[data-dl9]").forEach(b=>b.onclick=()=>download(+b.dataset.dl9,"9x16"));
-  document.querySelectorAll("[data-regen]").forEach(b=>b.onclick=()=>makeImage(+b.dataset.regen));
-  $("#copyAll").onclick=()=>copyText(packageText());
+      <details><summary>Ver texto</summary>${field("Base de conocimiento",v.p2)}</details>
+    </div>
+    <details class="card"><summary>Versiones de tu agente (${A.versions.length})</summary>
+      <div class="vers">${A.versions.map((x,i)=>`<div class="ver ${i===A.cur?"on":""}"><div>v${i+1} · ${esc(x.note)}<span>${new Date(x.t).toLocaleString("es-MX",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span></div>${i===A.cur?"<b style='color:var(--o)'>En uso</b>":`<button class="btn line sm" data-usev="${i}">Usar</button>`}</div>`).join("")}</div>
+    </details>
+    <div class="card warn"><div class="note" style="margin:0">Celion Connect puede usar otro modelo por dentro: se comportará muy parecido, no idéntico. Antes de lanzar, haz 2 o 3 mensajes de prueba reales allá.</div></div>`;
+  bindCopies($("#p-agent"));
+  const m=$("#msgs"); m.scrollTop=m.scrollHeight;
+  $$(".bub.a[data-m]").forEach(b=>b.onclick=()=>{ selMsg=+b.dataset.m; renderAgent(); $("#fixBox").scrollIntoView({behavior:"smooth",block:"center"}); });
+  $("#chatSend").onclick=sendChat; $("#chatIn").onkeydown=e=>{ if(e.key==="Enter") sendChat(); };
+  bindVoice($("#chatMic"), t=>$("#chatLbl").textContent=t, t=>{ $("#chatIn").value=t; sendChat(); });
+  bindVoice($("#fixMic"), t=>$("#fixLbl").textContent=t, t=>{ const x=$("#fixTxt"); x.value=(x.value?x.value+" ":"")+t; });
+  $("#fixGo").onclick=applyFix; $("#fixCancel").onclick=()=>{ selMsg=-1; renderAgent(); };
+  $("#chatReset").onclick=()=>{ A.chat=[]; selMsg=-1; saveCampaign(); renderAgent(); };
+  $("#testGo").onclick=runTest;
   $("#dlPdf").onclick=pdf;
-  for(const i in state.images) paintImage(+i);
+  $$("[data-usev]").forEach(b=>b.onclick=()=>{ A.cur=+b.dataset.usev; saveCampaign(); renderAgent(); toast("Usando v"+(A.cur+1)); });
+  if(testResult) paintTest();
 }
-document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t)); document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id===t.dataset.p)); });
-
-function imagePrompt(ad){
-  return `${ad.prompt_imagen}
-
-Formato: anuncio vertical para Facebook e Instagram, estética premium y moderna.${ad.texto_en_imagen?` Incluye este texto exacto en español, grande, legible y bien escrito, en la zona central: "${ad.texto_en_imagen}".`:""} Deja márgenes amplios arriba y abajo (la imagen se recortará a 4:5). Sin marcas de agua.${state.photos.length?" La primera imagen adjunta es el producto, persona o lugar real: mantenlo fiel, no lo deformes.":""}${state.refs.length?` La ${state.photos.length?"segunda":"imagen"} adjunta es solo una referencia de estilo (colores, composición, ambiente): no copies su contenido, marcas, logotipos, personas ni textos.`:""}`;
+async function sendChat(){
+  const inp=$("#chatIn"); const t=(inp.value||"").trim(); if(!t||simBusy) return;
+  const A=state.c.agent; A.chat.push({role:"user",content:t}); simBusy=true; selMsg=-1; renderAgent();
+  try{ const r=await llm({system:agentSystem(curV()), messages:A.chat, kind:"agente"}); A.chat.push({role:"assistant",content:r}); }
+  catch(e){ toast(friendly(e)); }
+  simBusy=false; saveCampaign(); renderAgent(); setTimeout(()=>$("#chatIn")&&$("#chatIn").focus(),50);
 }
-async function makeImage(i){
-  const box=$("#img"+i); box.innerHTML=`<div class="st"><div class="mini"></div>Creando imagen…</div>`;
-  setDl(i,false);
+const FIXER = `Eres experto en diseñar prompts para agentes de ventas por WhatsApp. Recibes los 2 prompts actuales de un agente (personalidad/proceso y base de conocimiento), una conversación de prueba y una corrección del dueño del negocio. Reescribe los prompts aplicando la corrección:
+- Cambia lo mínimo necesario y conserva todo lo demás tal cual.
+- Si la corrección es de comportamiento, tono o proceso, modifica el prompt de personalidad (agrega una regla clara y, si ayuda, un ejemplo de respuesta correcta).
+- Si es de datos (precios, horarios, información), modifica la base de conocimiento.
+- Nunca borres información del negocio.
+Devuelve SOLO JSON: {"prompt_personalidad":"", "base_conocimiento":"", "resumen_cambio":"una frase corta en español de lo que cambiaste"}`;
+async function improve(correction, convo){
+  const v=curV();
+  const r=await llm({system:FIXER, user:`PROMPT DE PERSONALIDAD ACTUAL:\n${v.p1}\n\nBASE DE CONOCIMIENTO ACTUAL:\n${v.p2}\n\nCONVERSACIÓN DE PRUEBA:\n${convo}\n\nCORRECCIÓN DEL DUEÑO:\n${correction}`, json:true, kind:"agente"});
+  const A=state.c.agent; A.versions.push({p1:r.prompt_personalidad||v.p1, p2:r.base_conocimiento||v.p2, note:r.resumen_cambio||"Ajuste", t:Date.now()}); A.cur=A.versions.length-1;
+  return r.resumen_cambio||"Ajuste aplicado";
+}
+async function applyFix(){
+  const A=state.c.agent, i=selMsg, t=$("#fixTxt").value.trim(); if(i<0||!t){ toast("Escribe cómo debió contestar"); return; }
+  $("#fixGo").disabled=true; $("#fixLbl").textContent="Ajustando tu agente…";
   try{
-    const photo = state.photos.length ? state.photos[i%state.photos.length] : null;
-    const ref = state.refs.length ? state.refs[i%state.refs.length] : null;
-    state.images[i]=await genImage(imagePrompt(state.plan.anuncios[i]), photo, ref);
-    paintImage(i);
-  }catch(e){ box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" onclick="makeImage(${i})">Reintentar</button></div>`; }
+    const convo=A.chat.slice(0,i+1).map((m,k)=>`${m.role==="user"?"CLIENTE":"AGENTE"}${k===i?" (ESTA RESPUESTA ESTÁ MAL)":""}: ${m.content}`).join("\n");
+    const note=await improve(t, convo);
+    A.chat=A.chat.slice(0,i); selMsg=-1; simBusy=true; renderAgent();
+    const r=await llm({system:agentSystem(curV()), messages:A.chat, kind:"agente"}); A.chat.push({role:"assistant",content:r});
+    simBusy=false; saveCampaign(); renderAgent(); toast("v"+(A.cur+1)+": "+note);
+  }catch(e){ simBusy=false; $("#fixGo").disabled=false; $("#fixLbl").textContent=friendly(e); }
 }
-function paintImage(i){ const box=$("#img"+i); if(!box) return; box.innerHTML=`<img alt="Creativo ${i+1}" src="${state.images[i]}">`; setDl(i,true); }
-function setDl(i,on){ const a=document.querySelector(`[data-dl="${i}"]`), b=document.querySelector(`[data-dl9="${i}"]`); if(a)a.disabled=!on; if(b)b.disabled=!on; }
-async function generateAllImages(){
-  const n=state.plan.anuncios.length; let k=0;
-  const worker=async()=>{ while(k<n){ const i=k++; await makeImage(i); } };
-  await Promise.all([worker(),worker()]);
+async function runTest(){
+  const c=state.c, v=curV(); const btn=$("#testGo"); btn.disabled=true; btn.textContent="Probando con 5 clientes…";
+  testResult={loading:true}; paintTest();
+  try{
+    const ctx=`Negocio: ${c.answers.tipo}. ${c.answers.descripcion||""} ${c.answers.oferta||""}`.slice(0,800);
+    const convos = await Promise.all(PERSONAS.map(async ([n,d])=>{
+      const T=[];
+      for(let turn=0;turn<3;turn++){
+        const flipped=T.map(m=>({role:m.role==="user"?"assistant":"user",content:m.content}));
+        const cust=await llm({system:`Eres un posible cliente que escribe por WhatsApp a un negocio después de ver un anuncio. Perfil: ${n} — ${d}. Contexto del anuncio: ${ctx}. Escribe UN solo mensaje corto, natural, en español de México, como persona real (sin comillas, sin explicar).`, messages: flipped.length?flipped:[{role:"user",content:"(Empieza la conversación)"}], kind:"agente"});
+        T.push({role:"user",content:cust});
+        const ag=await llm({system:agentSystem(v), messages:T, kind:"agente"});
+        T.push({role:"assistant",content:ag});
+      }
+      return {n, T};
+    }));
+    const txt=convos.map(x=>`### Cliente: ${x.n}\n`+x.T.map(m=>`${m.role==="user"?"CLIENTE":"AGENTE"}: ${m.content}`).join("\n")).join("\n\n");
+    const ev=await llm({system:`Eres evaluador de agentes de ventas por WhatsApp. Evalúa si el agente siguió su proceso, respondió con datos correctos, manejó objeciones y avanzó hacia el objetivo (${c.answers.objetivo}) con mensajes cortos y naturales. Devuelve SOLO JSON: {"puntaje": número del 0 al 10, "resultados":[{"persona":"","ok":true,"comentario":"una frase"}], "mejoras":["cambios concretos a los prompts"]}`, user:`PROMPT DEL AGENTE:\n${v.p1}\n\nBASE:\n${v.p2.slice(0,6000)}\n\nCONVERSACIONES:\n${txt}`, json:true, kind:"agente"});
+    testResult={...ev, convos};
+  }catch(e){ testResult={error:friendly(e)}; }
+  btn.disabled=false; btn.textContent="Pon a prueba a mi agente"; paintTest(); saveCampaign();
 }
-function download(i, fmt){
-  const src=state.images[i]; if(!src) return;
-  const img=new Image(); img.onload=()=>{
-    const c=document.createElement("canvas"), x=c.getContext("2d");
-    if(fmt==="4x5"){ c.width=1080; c.height=1350; const s=Math.max(1080/img.width,1350/img.height); const w=img.width*s,h=img.height*s; x.drawImage(img,(1080-w)/2,(1350-h)/2,w,h); }
-    else { c.width=1080; c.height=1920; x.fillStyle="#000"; x.fillRect(0,0,1080,1920);
-      x.filter="blur(40px) brightness(.5)"; const sb=Math.max(1080/img.width,1920/img.height); x.drawImage(img,(1080-img.width*sb)/2,(1920-img.height*sb)/2,img.width*sb,img.height*sb); x.filter="none";
-      const s=1080/img.width, h=img.height*s; x.drawImage(img,0,(1920-h)/2,1080,h); }
-    c.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`anuncio-${i+1}-${fmt}.jpg`; document.body.appendChild(a); a.click(); a.remove(); toast("Imagen descargada"); },"image/jpeg",.92);
-  }; img.src=src;
+function paintTest(){
+  const box=$("#testBox"); if(!box||!testResult) return; const r=testResult;
+  if(r.loading){ box.innerHTML=`<div class="card"><div class="st" style="text-align:center;color:var(--muted)"><div class="mini" style="width:30px;height:30px;border-radius:50%;border:2px solid transparent;border-top-color:var(--o);animation:spin 1s linear infinite;margin:0 auto 10px"></div>5 clientes simulados están hablando con tu agente…</div></div>`; return; }
+  if(r.error){ box.innerHTML=`<div class="err">${esc(r.error)}</div>`; return; }
+  box.innerHTML=`<div class="card hero"><div style="display:flex;gap:16px;align-items:center"><div class="score">${esc(r.puntaje)}<span style="font-size:18px;color:var(--muted)">/10</span></div><div class="note" style="margin:0">Calificación de tu agente con 5 tipos de cliente.</div></div>
+    <div style="margin-top:12px">${(r.resultados||[]).map(x=>`<div class="res"><span>${x.ok?"✅":"⚠️"}</span><div><b>${esc(x.persona)}</b><br><span class="note" style="margin:0">${esc(x.comentario)}</span></div></div>`).join("")}</div>
+    ${(r.mejoras||[]).length?`<div class="kv" style="margin-top:12px"><div class="k">Mejoras sugeridas</div><ul class="clean">${r.mejoras.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div><button class="btn sm" id="applyTest">Aplicar mejoras</button>`:""}
+    <details><summary>Ver conversaciones</summary>${(r.convos||[]).map(x=>`<div style="margin-top:12px"><b>${esc(x.n)}</b>${x.T.map(m=>`<div class="note" style="margin:4px 0;color:${m.role==="user"?"#9ad":"#ddd"}">${m.role==="user"?"Cliente":"Agente"}: ${esc(m.content)}</div>`).join("")}</div>`).join("")}</details></div>`;
+  if($("#applyTest")) $("#applyTest").onclick=async e=>{ e.currentTarget.disabled=true; e.currentTarget.textContent="Aplicando…";
+    try{ const note=await improve("Aplica estas mejoras: "+r.mejoras.join("; "), (r.convos||[]).map(x=>x.n+": "+x.T.map(m=>m.content).join(" / ")).join("\n").slice(0,6000)); testResult=null; saveCampaign(); renderAgent(); toast("v"+(state.c.agent.cur+1)+": "+note); }
+    catch(err){ toast(friendly(err)); } };
 }
+
+/* ---------------- Exportar ---------------- */
 function packageText(){
-  const p=state.plan, e=p.estrategia||{};
-  let t=`CAMPAÑA · ${state.answers.tipo} · ${(state.answers.marca||{}).nombre||""}\n\n${p.resumen}\n\nESTRATEGIA\nObjetivo: ${e.objetivo_meta}\nEstructura: ${e.estructura}\nPresupuesto: ${e.presupuesto}\nDuración: ${e.duracion}\nPúblico: ${e.publico}\nUbicaciones: ${e.ubicaciones}\nReglas:\n- ${(e.reglas||[]).join("\n- ")}\n\n`;
-  p.anuncios.forEach((a,i)=>{ t+=`ANUNCIO ${i+1} · ${a.angulo}\nTexto principal:\n${a.texto_principal}\nTítulo: ${a.titulo}\nDescripción: ${a.descripcion}\nBotón: ${a.cta}\n\n`; });
-  t+=`PASO A PASO EN META\n`+(p.pasos_meta||[]).map((s,i)=>`${i+1}. ${s.titulo}: ${s.detalle}`).join("\n");
+  const c=state.c, p=c.plan, e=p.estrategia||{}, v=curV();
+  let t=`CAMPAÑA · ${c.answers.tipo} · ${(c.answers.marca||{}).nombre||""}\n\nEN SENCILLO\n- ${(p.en_sencillo||[p.resumen]).join("\n- ")}\n\nESTRATEGIA\nObjetivo: ${e.objetivo_meta}\nEstructura: ${e.estructura}\nPresupuesto: ${e.presupuesto}\nDuración: ${e.duracion}\nPúblico: ${e.publico}\nUbicaciones: ${e.ubicaciones}\nReglas:\n- ${(e.reglas||[]).join("\n- ")}\n\n`;
+  c.ads.forEach((a,i)=>{ t+=`ANUNCIO ${i+1}${a.reserva?" (RESERVA)":""} · ${a.angulo}\nTexto principal:\n${a.texto_principal}\nTítulo: ${a.titulo}\nDescripción: ${a.descripcion}\nBotón: ${a.cta}\n${a.advertencia?"⚠️ "+a.advertencia+"\n":""}\n`; });
+  t+=`PASO A PASO EN META\n`+(p.pasos_meta||[]).map((s,i)=>`${i+1}. ${s.titulo}: ${s.tocar?"toca "+s.tocar+". ":""}${s.valor?"Valor: "+s.valor+". ":""}${s.detalle||""}`).join("\n");
   if(p.mensaje_prellenado) t+=`\n\nMensaje prellenado de WhatsApp: ${p.mensaje_prellenado}`;
-  t+=`\n\nAGENTE · PROMPT 1\n${(p.agente||{}).prompt_personalidad}\n\nAGENTE · PROMPT 2 (BASE DE CONOCIMIENTO)\n${(p.agente||{}).base_conocimiento}`;
+  t+=`\n\nAGENTE · PROMPT 1 (v${c.agent.cur+1})\n${v.p1}\n\nAGENTE · PROMPT 2 (BASE DE CONOCIMIENTO)\n${v.p2}`;
   return t;
 }
-function pdf(){
-  const txt=((state.plan.agente||{}).base_conocimiento||"").replace(/[^\u0000-ÿ–—‘’“”•]/g,"");
-  if(!window.jspdf){ copyText(txt); toast("No cargó el PDF: copié el texto"); return; }
+function pdfBlob(){
+  const v=curV(); const txt=(v.p2||"").replace(/[^\u0000-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2022]/g,"");
+  if(!window.jspdf) return null;
   const doc=new window.jspdf.jsPDF({unit:"pt",format:"letter"}); const M=56, W=612-2*M; let y=M;
-  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.text(`Base de conocimiento · ${(state.answers.marca||{}).nombre||"Agente"}`,M,y); y+=28;
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.text(`Base de conocimiento · ${(state.c.answers.marca||{}).nombre||"Agente"}`,M,y); y+=28;
   for(const line of txt.split("\n")){
-    const head = /^[A-ZÁÉÍÓÚÑ0-9 ,.:¿?()\-]{4,}$/.test(line.trim()) && line.trim()===line.trim().toUpperCase();
+    const head=/^[A-ZÁÉÍÓÚÑ0-9 ,.:¿?()\-]{4,}$/.test(line.trim()) && line.trim()===line.trim().toUpperCase();
     doc.setFont("helvetica",head?"bold":"normal"); doc.setFontSize(head?12.5:11);
-    const parts=doc.splitTextToSize(line||" ",W);
-    for(const p of parts){ if(y>792-M){ doc.addPage(); y=M; } doc.text(p,M,y); y+= head?18:15; }
+    for(const p of doc.splitTextToSize(line||" ",W)){ if(y>792-M){ doc.addPage(); y=M; } doc.text(p,M,y); y+=head?18:15; }
     if(head) y+=2;
   }
-  doc.save("base-de-conocimiento.pdf"); toast("PDF descargado");
+  return doc.output("blob");
+}
+function pdf(){ const b=pdfBlob(); if(!b){ copyText(curV().p2); toast("No cargó el PDF: copié el texto"); return; } download(b,"base-de-conocimiento.pdf"); toast("PDF descargado"); }
+
+/* ---------------- Google Drive ---------------- */
+let gTok=null, gExp=0;
+function loadGIS(){ return new Promise((res,rej)=>{ if(window.google&&google.accounts&&google.accounts.oauth2) return res(); const s=document.createElement("script"); s.src="https://accounts.google.com/gsi/client"; s.onload=res; s.onerror=()=>rej(new Error("No cargó Google")); document.head.appendChild(s); }); }
+async function driveToken(interactive){
+  if(gTok && Date.now()<gExp-60000) return gTok;
+  await loadGIS();
+  return new Promise((res,rej)=>{ const tc=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID, scope:"https://www.googleapis.com/auth/drive.file",
+    callback:r=>{ if(r.error) return rej(new Error(r.error)); gTok=r.access_token; gExp=Date.now()+(r.expires_in||3600)*1000; res(gTok); }, error_callback:e=>rej(new Error(e.type||"popup"))});
+    tc.requestAccessToken({prompt: interactive?"consent":""}); });
+}
+async function gfetch(url, opt={}){ const t=await driveToken(false); const r=await fetch(url,{...opt, headers:{...(opt.headers||{}), Authorization:"Bearer "+t}}); if(!r.ok) throw new Error("Drive "+r.status); return r.json(); }
+async function gFolder(name, parent){
+  const meta={name, mimeType:"application/vnd.google-apps.folder", ...(parent?{parents:[parent]}:{})};
+  return (await gfetch("https://www.googleapis.com/drive/v3/files",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(meta)})).id;
+}
+async function gUpload(name, blob, parent){
+  const fd=new FormData(); fd.append("metadata",new Blob([JSON.stringify({name,parents:[parent]})],{type:"application/json"})); fd.append("file",blob);
+  return gfetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{method:"POST",body:fd});
+}
+async function driveSave(auto){
+  if(!GOOGLE_CLIENT_ID||!state.c) return;
+  try{
+    if(!auto) toast("Guardando en Drive…");
+    let root=store.get(LS.driveRoot);
+    if(root){ try{ await gfetch("https://www.googleapis.com/drive/v3/files/"+root+"?fields=id,trashed").then(f=>{ if(f.trashed) root=null; }); }catch(e){ root=null; } }
+    if(!root){ root=await gFolder("Cel.IA"); store.set(LS.driveRoot,root); }
+    const c=state.c; const dt=new Date(c.created).toISOString().slice(0,10);
+    const folder=await gFolder(`${dt} · ${c.name}`.slice(0,90), root);
+    for(let i=0;i<c.ads.length;i++){ if(!c.ads[i].img) continue; const b=await cropTo(i,"4x5"); await gUpload(`anuncio-${i+1}${c.ads[i].reserva?"-reserva":""}.jpg`, b, folder); }
+    await gUpload("campaña.txt", new Blob([packageText()],{type:"text/plain"}), folder);
+    const pb=pdfBlob(); if(pb) await gUpload("base-de-conocimiento.pdf", pb, folder);
+    c.drive=folder; saveCampaign(); toast("Guardado en tu Drive ✓");
+  }catch(e){ if(!auto) toast("No se pudo guardar en Drive: "+e.message); else if($("#toDrive")) $("#toDrive").textContent="Guardar en Drive (toca para reintentar)"; }
 }
 
+/* ---------------- Historial ---------------- */
+async function renderHistory(){
+  let list=[]; try{ list=(await idb.all()).filter(c=>c.plan).sort((a,b)=>b.created-a.created); }catch(e){}
+  if(!list.length){ $("#hist").innerHTML=""; return; }
+  $("#hist").innerHTML=`<div class="eyebrow" style="margin-bottom:4px">Mis campañas</div>`+list.map(c=>{ const th=(c.ads||[]).find(a=>a.img);
+    return `<div class="card hitem" data-open="${c.id}"><div class="th" style="${th?`background-image:url(${urlFor(th.img)})`:""}"></div><div class="tx"><b>${esc(c.name)}</b><span>${new Date(c.created).toLocaleDateString("es-MX",{day:"numeric",month:"short"})} · ${(c.ads||[]).length} anuncios · ${usdFmt(campaignTotal(c))} USD</span></div><button class="del" data-del="${c.id}" aria-label="Borrar">✕</button></div>`; }).join("");
+  $$("[data-open]").forEach(el=>el.onclick=async e=>{ if(e.target.closest("[data-del]")) return; state.c=await idb.get(el.dataset.open); selMsg=-1; testResult=null; renderResults(); show("s-results"); });
+  $$("[data-del]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); if(b.dataset.sure){ idb.del(b.dataset.del).then(renderHistory); } else { b.dataset.sure="1"; b.textContent="Borrar"; b.style.color="#ff8a7a"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.sure; b.textContent="✕"; b.style.color=""; b.style.fontSize=""; } },3000); } });
+}
+function paintHistoryThumb(){}
+
 /* ---------------- Ajustes ---------------- */
+let settingsFrom="s-home";
+function spendStats(){
+  const L=store.get(LS.ledger,[]); const now=new Date(); const m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+  const tot=L.reduce((a,e)=>a+e.u,0), mon=L.filter(e=>e.t>=m0).reduce((a,e)=>a+e.u,0);
+  const camps=new Set(L.map(e=>e.c).filter(Boolean)).size; const imgs=L.filter(e=>e.k==="imagenes").reduce((a,e)=>a+(e.n||0),0);
+  return `<div><b>${usdFmt(mon)}</b><span>Este mes (USD) · ${mxnFmt(mon)} MXN</span></div><div><b>${usdFmt(tot)}</b><span>Total (USD) · ${mxnFmt(tot)} MXN</span></div><div><b>${camps}</b><span>Campañas</span></div><div><b>${usdFmt(avgImage())}</b><span>Promedio por imagen (${imgs} creadas)</span></div>`;
+}
 function openSettings(){
+  $("#spendStats").innerHTML=spendStats();
   $("#setKeyInfo").textContent = state.key ? `Conectado · llave terminada en …${state.key.slice(-4)}` : "Sin llave conectada";
   $("#mText").value=state.models.text||""; $("#mImage").value=state.models.image||""; $("#mStt").value=state.models.stt||"";
   $("#qualityChips").innerHTML=[["low","Rápida"],["medium","Media"],["high","Alta"]].map(([v,t])=>`<button class="chip ${state.quality===v?"on":""}" data-q="${v}">${t}</button>`).join("");
-  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{ state.quality=b.dataset.q; document.querySelectorAll("[data-q]").forEach(x=>x.classList.toggle("on",x===b)); });
-  settingsFrom = document.querySelector(".screen.on").id; show("s-settings");
+  $$("[data-q]").forEach(b=>b.onclick=()=>{ state.quality=b.dataset.q; $$("[data-q]").forEach(x=>x.classList.toggle("on",x===b)); });
+  const L={textIn:"Texto · entrada",textOut:"Texto · salida",imgTextIn:"Imagen · texto de entrada",imgIn:"Imagen · imagen de entrada",imgOut:"Imagen · salida",stt:"Voz (por minuto)",fx:"Tipo de cambio MXN por USD"};
+  $("#priceBox").innerHTML=Object.keys(L).map(k=>`<span>${L[k]}</span><input type="number" step="any" data-price="${k}" value="${state.prices[k]}">`).join("");
+  if(!GOOGLE_CLIENT_ID){ $("#driveInfo").textContent="Muy pronto podrás guardar cada campaña automáticamente en tu Google Drive."; $("#driveBox").innerHTML=`<button class="btn line full" disabled>Conectar Google Drive</button>`; }
+  else { const on=store.get(LS.drive); $("#driveInfo").textContent= on? "Conectado: cada campaña se guarda sola en la carpeta Cel.IA de tu Drive." : "Guarda cada campaña (imágenes, textos y PDF) en una carpeta Cel.IA de tu Drive. Cel.IA solo puede ver los archivos que ella misma crea.";
+    $("#driveBox").innerHTML= on? `<button class="btn line full" id="driveOff">Desconectar Drive</button>` : `<button class="btn full" id="driveOn">Conectar Google Drive</button>`;
+    if($("#driveOn")) $("#driveOn").onclick=async()=>{ try{ await driveToken(true); store.set(LS.drive,true); toast("Drive conectado ✓"); openSettings(); }catch(e){ toast("No se conectó: "+e.message); } };
+    if($("#driveOff")) $("#driveOff").onclick=()=>{ store.set(LS.drive,false); gTok=null; try{ google.accounts.oauth2.revoke(gTok||""); }catch(e){} openSettings(); }; }
+  const cur=$$(".screen").find(s=>s.classList.contains("on")); if(cur&&cur.id!=="s-settings") settingsFrom=cur.id; show("s-settings");
 }
-let settingsFrom="s-home";
 $("#btnSettings").onclick=()=> state.key ? openSettings() : show("s-setup");
-$("#btnSaveSettings").onclick=()=>{ state.models={text:$("#mText").value.trim(),image:$("#mImage").value.trim(),stt:$("#mStt").value.trim()}; store.set(LS.models,state.models); store.set(LS.quality,state.quality); toast("Guardado"); show(settingsFrom==="s-settings"?"s-home":settingsFrom); if(settingsFrom==="s-wizard") renderStep(); };
+$("#btnSaveSettings").onclick=()=>{
+  state.models={text:$("#mText").value.trim(),image:$("#mImage").value.trim(),stt:$("#mStt").value.trim()}; store.set(LS.models,state.models); store.set(LS.quality,state.quality);
+  $$("[data-price]").forEach(i=>{ const v=parseFloat(i.value); if(isFinite(v)&&v>=0) state.prices[i.dataset.price]=v; }); store.set(LS.prices,state.prices);
+  toast("Guardado"); if(settingsFrom==="s-results"&&state.c){ show("s-results"); } else if(settingsFrom==="s-wizard"){ show("s-wizard"); renderStep(); } else home();
+};
 $("#btnDetect").onclick=async()=>{ try{ await detectModels(); openSettings(); toast("Modelos detectados"); }catch(e){ toast(friendly(e)); } };
 $("#btnChangeKey").onclick=()=>{ $("#apikey").value=""; show("s-setup"); };
-
 $("#btnKey").onclick=async()=>{
   const k=$("#apikey").value.trim(); const m=$("#keymsg"); m.className="err";
   if(!/^sk-/.test(k)){ m.textContent="La llave empieza con sk-. Cópiala completa."; return; }
-  $("#btnKey").disabled=true; $("#btnKey").textContent="Conectando…"; m.textContent="";
-  state.key=k;
+  $("#btnKey").disabled=true; $("#btnKey").textContent="Conectando…"; m.textContent=""; state.key=k;
   try{ await detectModels(); store.set(LS.key,k); m.className="note ok"; m.textContent="✓ Conectado"; setTimeout(home,500); }
   catch(e){ state.key=""; m.textContent=friendly(e); }
   $("#btnKey").disabled=false; $("#btnKey").textContent="Conectar";
 };
 
 /* ---------------- Inicio ---------------- */
-function home(){ $("#resumeBox").classList.toggle("hidden",!store.get(LS.last)); show("s-home"); }
-$("#btnStart").onclick=()=>{ state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
-$("#btnResume").onclick=()=>{ const l=store.get(LS.last); if(!l) return; state.plan=l.plan; state.answers=l.answers||state.answers; state.images={}; renderResults(); show("s-results");
-  state.plan.anuncios.forEach((_,i)=>{ $("#img"+i).innerHTML=`<div class="st">Las imágenes no se guardan en el teléfono.<br><br><button class="btn line sm" onclick="makeImage(${i})">Crear de nuevo</button></div>`; }); };
-$("#btnNew").onclick=()=>{ state.answers={}; state.photos=[]; state.refs=[]; save(); home(); };
+function home(){ show("s-home"); renderHistory(); }
+$("#appname").onclick=()=>{ if(state.key) home(); };
+$("#btnStart").onclick=()=>{ state.answers={}; save(); state.files={material:[],refs:[]}; state.exact=null; state.c=null; state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
+$("#btnNew").onclick=()=>home();
 
 state.key ? home() : show("s-setup");
+
 </script>
 </body>
 </html>
