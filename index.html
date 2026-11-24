@@ -248,6 +248,43 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 .busy .mini{width:34px;height:34px;border-radius:50%;border:2px solid transparent;border-top-color:var(--o);animation:spin 1s linear infinite}
 .swatch{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.25);padding:0}
 .swatch.on{border-color:var(--o);box-shadow:0 0 0 3px rgba(255,90,31,.35)}
+/* chat Cel.IA */
+#s-chat.on{display:flex;flex-direction:column;min-height:calc(100vh - 110px)}
+.chtop{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.chbar{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.chbar i{display:block;height:100%;background:var(--o);box-shadow:0 0 10px var(--o);transition:width .5s}
+#chatLog{flex:1;display:flex;flex-direction:column;gap:12px;padding-bottom:12px}
+.cmsg{display:flex;gap:8px;align-items:flex-end;animation:in .3s ease}
+.cmsg.me{justify-content:flex-end}
+.cav{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:linear-gradient(135deg,var(--o),#b8360b);display:grid;place-items:center;font-weight:700;color:#000;font-family:"Space Grotesk";box-shadow:var(--glow)}
+.cbub{max-width:84%;padding:11px 14px;border-radius:18px;font-size:15.5px;line-height:1.45}
+.ai .cbub{background:rgba(255,255,255,.05);border:1px solid var(--line);border-bottom-left-radius:6px}
+.me .cbub{background:linear-gradient(135deg,#ff6a2f,var(--o));color:#0a0a0a;border-bottom-right-radius:6px}
+.cbub.typing{display:flex;gap:5px;padding:14px 16px}
+.cbub.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.cbub.typing i:nth-child(2){animation-delay:.2s}.cbub.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.cfiles{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cfile{display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.25);border-radius:12px;padding:6px}
+.cth{width:44px;height:44px;flex:0 0 44px;border-radius:9px;background:#111 center/cover;display:grid;place-items:center}
+.cth.doc{font-size:20px;background:#1a1a1a}
+.cfmeta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cfname{font-size:12px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.crole{align-self:flex-start;border:none;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;background:#fff;color:#000}
+.crole.ref{background:#ffd23f}
+.chdock{position:sticky;bottom:0;padding:10px 0 calc(8px + env(safe-area-inset-bottom));background:linear-gradient(to top,#050505 78%,rgba(5,5,5,0))}
+#chatQuick{margin-bottom:8px}
+#chatQuick .btn{padding:11px 18px;font-size:15px}
+#chatQuick .chip.pick{border-color:var(--o);color:var(--o)}
+#chatPend{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.pend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.pend .cth{width:36px;height:36px;flex-basis:36px}
+.pend button{margin-left:auto;background:none;border:none;color:var(--muted);font-size:15px}
+.chin{display:flex;gap:8px;align-items:flex-end;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:24px;padding:6px}
+.chin textarea{flex:1;min-height:40px;max-height:140px;border:none;background:transparent;padding:9px 6px;resize:none;box-shadow:none!important}
+.chin .cic{width:40px;height:40px;flex:0 0 40px;border:none;background:none;font-size:20px}
+.chin .micbtn{width:40px;height:40px;flex:0 0 40px}
+.chin .send{width:40px;height:40px;flex:0 0 40px;border-radius:50%;border:none;background:var(--o);color:#000;font-size:17px}
 </style>
 
 </head>
@@ -293,6 +330,23 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
     <p class="sub">Tu asistente de anuncios. Respóndeme unas preguntas (puedes hablarme) y te entrego estrategia, imágenes, textos, el paso a paso en Meta y tu agente de WhatsApp probado.</p>
     <button class="btn full" id="btnStart">Nueva campaña</button>
     <div class="hist" id="hist"></div>
+  </section>
+
+  <!-- CHAT CON CEL.IA -->
+  <section class="screen" id="s-chat">
+    <div class="chtop"><button class="ghost" id="chatBack">← Inicio</button><div class="chbar"><i id="chatProg"></i></div></div>
+    <div id="chatLog"></div>
+    <div class="chdock">
+      <div class="chips" id="chatQuick"></div>
+      <div id="chatPend"></div>
+      <div class="chin">
+        <button class="cic" id="chatAttach" aria-label="Adjuntar">📎</button>
+        <textarea id="chatIn2" rows="1" placeholder="Escribe, habla o sube un archivo…"></textarea>
+        <button class="micbtn" type="button" id="chatMic2" aria-label="Hablar"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button>
+        <button class="send" id="chatSend2" aria-label="Enviar">➤</button>
+      </div>
+      <input type="file" id="chatFile" accept="image/png,image/jpeg,image/webp,application/pdf,text/plain" multiple class="hidden">
+    </div>
   </section>
 
   <!-- PREGUNTAS -->
@@ -401,7 +455,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "3.5";
+const VERSION = "4.0";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -829,6 +883,8 @@ ESTRATEGIA:
 - Recomienda la cantidad de anuncios según presupuesto: hasta 150 MXN/día (o equivalente) 3 anuncios; 151 a 300: 4; más de 300: 5. Todo en 1 campaña y 1 conjunto. Explica en una línea por qué esa cantidad (campo por_que_cantidad).
 - Público Advantage+ con sugerencias; ubicaciones Advantage+.
 - WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Registros a evento: recomienda WhatsApp; formulario instantáneo solo como alternativa.
+- LANDING PAGE (objetivo "Llevar a mi landing page"): con píxel → campaña "Clientes potenciales" con conversión en "Sitio web" (o "Ventas" si la landing vende); sin píxel o "No sé" → campaña "Tráfico" a "vistas de la página de destino". Copies, CTA y pasos_meta dirigidos al link; si también quiere agente, el agente atiende dudas por WhatsApp.
+- FORMULARIO DE META (objetivo "Registros con formulario de Meta"): campaña "Clientes potenciales" con "Formularios instantáneos"; incluye en pasos_meta qué preguntas poner en el formulario y el mensaje de agradecimiento.
 - TIENDA EN LÍNEA (objetivo "Vender en mi tienda en línea"): respeta que quiere vender en su tienda, NO lo mandes a WhatsApp.
   * Con píxel ("Sí"): campaña "Ventas", ubicación de la conversión "Sitio web", evento de conversión "Compra", botón "Comprar".
   * Sin píxel o "No sé": campaña "Tráfico", ubicación del tráfico "Sitio web", meta "Maximizar el número de vistas de la página de destino", botón "Comprar" o "Más información". Explica en una línea por qué y cómo instalar el píxel si su tienda lo permite (las tiendas replicadas de compañías normalmente no lo permiten).
@@ -884,7 +940,25 @@ Devuelve SOLO un JSON válido con esta forma exacta:
 version_segura, cuando aplique, es {"texto_principal":"", "titulo":""}.
 datos_clave: los datos reales tal como los dio el usuario (precio con su moneda, ej. "$499 MXN"); "" si no se conocen.`;
 
+function briefFromChat(c){
+  const d=c.datos||{}, a=c.answers||{};
+  const files=(c.files||[]).map(f=>`  · ${f.id} "${f.name}" → ${(ROLES[f.rol]||{}).t||f.rol}${f.desc?": "+f.desc:""}`).join("\n");
+  const said=c.chat.filter(m=>m.role==="user"&&m.text).map(m=>"  · "+m.text).slice(-30).join("\n");
+  const hasImgs=(c.material||[]).some(f=>/^image\//.test(f.type));
+  return `DATOS RECOPILADOS EN LA CONVERSACIÓN CON EL USUARIO (úsalos todos, son la fuente principal):
+${JSON.stringify(d,null,1)}
+- Objetivo / destino interpretado: ${a.objetivo}${a.tienda?` · link ${a.tienda.link||"[COMPLETA: link]"} · píxel ${a.tienda.pixel} · modo ${a.tienda.modo}`:""}
+- Presupuesto: ${a.presupuesto.diario} ${a.presupuesto.moneda} diarios durante ${a.presupuesto.dias} días (total ${a.presupuesto.diario*a.presupuesto.dias} ${a.presupuesto.moneda})
+- Archivos del usuario (rol confirmado):
+${files||"  · ninguno"}
+- Imágenes: ${hasImgs? "la IA integrará las fotos reales del usuario (producto, personas, lugar o flyer a mejorar) en cada anuncio SIN alterarlas; describe escenas que las aprovechen."+(/quit|s[ií]/i.test(String(d.fondo_producto||""))?" El producto llega ya sin fondo (recortado).":"") : "la IA crea las imágenes desde cero."}
+- Referencias de estilo: ${(c.refs||[]).length? c.refs.length+" imagen(es) adjunta(s) al final: toma estilo visual y ángulos, sin copiar marcas, personas ni textos.":"ninguna"}
+- Lo que dijo el usuario, literal:
+${said}
+Fecha de hoy: ${new Date().toLocaleDateString("es-MX",{day:"numeric",month:"long",year:"numeric"})}`;
+}
 function briefFrom(c){
+  if(c.mode==="chat") return briefFromChat(c);
   const a=c.answers, b=a.presupuesto||{}, m=a.marca||{}, mats=c.material||[], d=a.detalles||{}, g=a.agente||{};
   const detLines=detOf(a.tipo).fields.map(([k,l])=>d[k]&&d[k].trim()?`  · ${l}: ${d[k]}`:"").filter(Boolean).join("\n");
   const imgs=mats.filter(f=>/^image\//.test(f.type));
@@ -913,7 +987,7 @@ async function partsFor(c){
   const parts=[];
   for(const f of (c.material||[])){
     try{
-      if(/^image\//.test(f.type)){ parts.push({type:"input_text",text:`Imagen "${f.name}" (${KINDS[f.kind]||"imagen"}):`}); parts.push({type:"input_image",image_url:await shrink(f.blob,1024)}); }
+      if(/^image\//.test(f.type)){ parts.push({type:"input_text",text:`Imagen "${f.name}" (${(f.rol&&ROLES[f.rol]?ROLES[f.rol].t:KINDS[f.kind])||"imagen"}${f.desc?": "+f.desc:""}):`}); parts.push({type:"input_image",image_url:await shrink(f.cut||f.blob,1024)}); }
       else if(f.type==="application/pdf") parts.push({type:"input_file",filename:f.name,file_data:await blobToDataURL(f.blob)});
       else if(/^text\//.test(f.type)) parts.push({type:"input_text",text:`ARCHIVO ${f.name}:\n`+(await f.blob.text()).slice(0,20000)});
     }catch(e){}
@@ -933,7 +1007,7 @@ async function generate(){
   let i=0; $("#loadmsg").textContent=MSGS[0]; const t=setInterval(()=>{ i=(i+1)%MSGS.length; $("#loadmsg").textContent=MSGS[i]; },2600);
   try{
     if(!state.models.text) await detectModels();
-    if(!state.c || state.c.plan) state.c=newCampaign();
+    if(!state.c || (state.c.plan && state.c.mode!=="chat")) state.c=newCampaign();
     show("s-loading"); $("#btnRetry").onclick=generate;
     const c=state.c;
     const plan=await llm({system:SYSTEM, user:briefFrom(c), parts:await partsFor(c), json:true});
@@ -1035,7 +1109,7 @@ async function makeImage(i, instruction){
       ad.bg = await genImage(imagePrompt(ad,c,null), ref?[ref]:[]);
       ad.img = await composite(ad.bg, productPhoto(c,i).blob);
     } else {
-      const input=pickInput(c,i); const inputs=[]; if(input) inputs.push(input.blob); if(ref) inputs.push(ref);
+      const input=pickInput(c,i); const inputs=[]; if(input) inputs.push(input.cut||input.blob); if(ref) inputs.push(ref);
       const nu = await genImage(imagePrompt(ad,c,input), inputs); pushHistory(ad); ad.img = nu; ad.bg=null;
     }
     pending.delete(c.id+":"+i); idb.put(c).catch(()=>{}); if(state.c===c) paintImage(i);
@@ -1045,6 +1119,7 @@ function paintImage(i){ const box=$("#img"+i), ad=state.c.ads[i]; if(!box) retur
   const row=box.parentElement.querySelector(".row"); if(row){ let u=row.querySelector("[data-undo]"); if((ad.history||[]).length&&!u){ u=document.createElement("button"); u.className="btn line sm"; u.dataset.undo=i; u.textContent="↩ Deshacer"; u.onclick=()=>undoImage(i); row.appendChild(u); } else if(!(ad.history||[]).length&&u) u.remove(); } } }
 function setDl(i,on){ $$(`[data-need-img="${i}"]`).forEach(b=>b.disabled=!on); }
 async function generateAllImages(){
+  if(state.c && state.c.mode==="chat"){ try{ await prepCutouts(state.c); }catch(e){} }
   const c=state.c, todo=c.ads.map((a,i)=>i).filter(i=>!c.ads[i].img); let k=0;
   todo.forEach(i=>{ pending.add(c.id+":"+i); const b=$("#img"+i); if(b) b.innerHTML=`<div class="st"><div class="mini"></div>En cola…</div>`; });
   const worker=async()=>{ while(k<todo.length){ const i=todo[k++]; await makeImage(i); } };
@@ -1600,14 +1675,176 @@ async function driveSave(auto){
 
 /* ---------------- Historial ---------------- */
 async function renderHistory(){
-  let list=[]; try{ list=(await idb.all()).filter(c=>c.plan).sort((a,b)=>b.created-a.created); }catch(e){}
+  let list=[]; try{ list=(await idb.all()).filter(c=>c.plan||(c.mode==="chat"&&c.chat&&c.chat.length>1)).sort((a,b)=>b.created-a.created); }catch(e){}
   if(!list.length){ $("#hist").innerHTML=""; return; }
   $("#hist").innerHTML=`<div class="eyebrow" style="margin-bottom:4px">Mis campañas</div>`+list.map(c=>{ const th=(c.ads||[]).find(a=>a.img);
-    return `<div class="card hitem" data-open="${c.id}"><div class="th" style="${th?`background-image:url(${urlFor(th.img)})`:""}"></div><div class="tx"><b>${esc(c.name)}</b><span>${new Date(c.created).toLocaleDateString("es-MX",{day:"numeric",month:"short"})} · ${(c.ads||[]).length} anuncios · ${usdFmt(campaignTotal(c))} USD</span></div><button class="del" data-del="${c.id}" aria-label="Borrar">✕</button></div>`; }).join("");
-  $$("[data-open]").forEach(el=>el.onclick=async e=>{ if(e.target.closest("[data-del]")) return; state.c=await idb.get(el.dataset.open); selMsg=-1; testResult=null; renderResults(); show("s-results"); });
+    return `<div class="card hitem" data-open="${c.id}"><div class="th" style="${th?`background-image:url(${urlFor(th.img)})`:""}"></div><div class="tx"><b>${esc(c.name)}</b><span>${new Date(c.created).toLocaleDateString("es-MX",{day:"numeric",month:"short"})} · ${c.plan?`${(c.ads||[]).length} anuncios · ${usdFmt(campaignTotal(c))} USD`:`<b style="color:var(--o);display:inline">Borrador</b> · continuar la conversación`}</span></div><button class="del" data-del="${c.id}" aria-label="Borrar">✕</button></div>`; }).join("");
+  $$("[data-open]").forEach(el=>el.onclick=async e=>{ if(e.target.closest("[data-del]")) return; const cc=await idb.get(el.dataset.open); if(!cc.plan&&cc.mode==="chat"){ startChat(cc); return; } state.c=cc; selMsg=-1; testResult=null; renderResults(); show("s-results"); });
   $$("[data-del]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); if(b.dataset.sure){ idb.del(b.dataset.del).then(renderHistory); } else { b.dataset.sure="1"; b.textContent="Borrar"; b.style.color="#ff8a7a"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.sure; b.textContent="✕"; b.style.color=""; b.style.fontSize=""; } },3000); } });
 }
 function paintHistoryThumb(){}
+
+/* =========================================================
+   Cambio 21 · Cel.IA conversacional
+   La IA entrevista a la persona en un chat: texto, voz y archivos
+   en cada turno; clasifica y confirma cada archivo por su rol.
+   ========================================================= */
+const ROLES = {
+  producto:{t:"Producto", k:"producto"}, etiqueta:{t:"Etiqueta", k:"etiqueta"}, persona:{t:"Persona", k:"persona"}, lugar:{t:"Lugar", k:"lugar"},
+  flyer_usar:{t:"Flyer a mejorar", k:"flyer"}, referencia_estilo:{t:"Referencia", k:"referencia"}, documento_info:{t:"Información", k:"doc"}, auto:{t:"Revisando…", k:"auto"}
+};
+const ROLE_CYCLE=["producto","persona","lugar","flyer_usar","referencia_estilo","etiqueta"];
+const INTERVIEWER = `Eres Cel.IA, la asistente de la comunidad Celion que arma campañas de Meta Ads y agentes de WhatsApp. Conversas por chat con un emprendedor: español de México, cálida, clara y breve (2 a 4 líneas por mensaje, máximo 1 emoji). Tu meta es reunir TODO lo necesario para una campaña excelente haciendo UNA pregunta a la vez (puedes juntar 2 datos muy relacionados). Aunque tardes un poco, pregunta lo necesario; nunca abrumes.
+
+QUÉ NECESITAS (pregunta solo lo que falte; si ya está en lo que dijo o en sus archivos, confírmalo en lugar de preguntarlo):
+1. Qué promociona (producto, servicio, evento, reto, oportunidad de negocio u otro) y de qué se trata.
+2. Entenderlo a fondo: cuando suba documentos o imágenes, léelos y di en 2 o 3 líneas lo que entendiste ("Ya vi tu documento: MUNO T es…") y pide que lo confirme. Pregunta qué puntos quiere resaltar.
+3. Precios, presentaciones y oferta. Si es evento: fecha, hora, lugar, ponentes, costo, cupo y qué van a vivir.
+4. A dónde quiere llevar a la gente: WhatsApp, landing page, tienda en línea (e-commerce) o formulario de Meta. Si es landing o tienda: el link y si tiene píxel de Meta (Sí / No / No sé).
+5. Fotos reales: del producto, de personas (ponentes, él mismo) o del lugar. Cuando suba la foto de un producto, observa el fondo y pregunta si quiere quitarlo ("Sí, quítalo" / "Déjalo así" / "Decide tú").
+6. Referencias: pregunta si tiene un flyer o anuncio de referencia (parecido a lo que quiere). Aclara que es solo REFERENCIA de estilo y describe el estilo que ves. Si sube su propio flyer, pregunta si quiere mejorarlo/usarlo o es solo referencia.
+7. Ideas de ángulos de venta ("¿Tienes ideas o te propongo yo?").
+8. Ubicación (ciudad o zona) y público.
+9. Presupuesto diario y cuántos días.
+10. Agente de WhatsApp (si el destino es WhatsApp; si va a landing o tienda, pregunta si también quiere agente para dudas): cómo se presenta y su nombre, en qué se enfoca, el proceso que quiere (pasos de la conversación), medios de pago y links, horario, y cuándo pasarle la conversación a una persona.
+11. Su nombre, su marca o compañía y su WhatsApp.
+12. Tono de la comunicación.
+Cuando tengas lo esencial (1, 3, 4, 8, 9 y 11 como mínimo) y ya hayas cubierto lo demás o el usuario no lo tenga, haz un RESUMEN corto en viñetas y pregunta "¿Armo tu campaña?" con listo=true.
+
+ARCHIVOS: cada archivo llega con un id (f1, f2…) y, si lo subió desde un botón que tú pediste, con su rol sugerido. Clasifica cada archivo NUEVO en "archivos" con rol: producto | etiqueta | persona | lugar | flyer_usar (su flyer o diseño para mejorar/usar) | referencia_estilo (inspiración, NO se usa tal cual) | documento_info (información), con una descripción breve de lo que ves (para productos, di también cómo es el fondo). Usa el contexto: si acabas de pedir referencias, lo que suba es referencia_estilo. Si no está claro, clasifícalo como mejor creas y pregunta para confirmar.
+
+ESTILO: no limites ni juzgues lo que quiere decir de su producto; si algo puede dar problemas con Meta, menciónalo después en una línea y sigue. No inventes datos.
+"opciones": 2 a 4 respuestas rápidas cortas cuando ayuden (tipos, Sí/No, presupuestos 100/150/200/300 MXN, días 5/7/10/14, destinos…). Si la pregunta es abierta, deja [].
+"pide_archivo": cuando pidas una foto o documento, {"rol":"producto|persona|lugar|flyer_usar|referencia_estilo|documento_info|etiqueta","boton":"texto corto del botón"}; si no, null.
+
+Devuelve SOLO JSON válido:
+{"mensaje":"", "opciones":[], "pide_archivo":null, "archivos":[{"id":"","rol":"","descripcion":""}],
+ "datos":{todo lo que sabes hasta ahora, ACUMULADO, con estas claves cuando apliquen: "tipo","que_es","resaltar","precios","evento","destino","link","pixel","agente_tambien","fondo_producto","estilo","angulos","ubicacion","publico","presupuesto_diario","moneda","dias","agente","nombre","marca","whatsapp","tono","notas"},
+ "progreso": 0, "listo": false}`;
+
+const CHAT = { busy:false, pending:[], pendRole:null };
+const WELCOME = () => ({ role:"assistant", text:`¡Hola${(store.get("cl_name","")?", "+store.get("cl_name",""):"")}! Soy **Cel.IA** ✨\nVamos a armar tu campaña completa platicando. Puedes escribirme, mandarme audio o subir fotos y documentos en cualquier momento.\n\n¿Qué quieres promocionar?`, opciones:["Un producto","Un servicio","Un evento","Un reto","Oportunidad de negocio","Otra cosa"] });
+
+function newChatCampaign(){
+  return { id:uid(), v:4, mode:"chat", created:Date.now(), name:"Nueva campaña", answers:{}, datos:{}, files:[], material:[], refs:[], exact:false,
+    chat:[WELCOME()], progreso:0, listo:false, plan:null, ads:[], costs:{}, agent:{versions:[],cur:0,chat:[]}, tour:0, metaMode:"tour" };
+}
+function startChat(c){ state.c=c||newChatCampaign(); CHAT.pending=[]; CHAT.pendRole=null; show("s-chat"); paintChat(); }
+const md = t => esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+function fileChip(f){ const r=ROLES[f.rol||"auto"]||ROLES.auto; const img=/^image\//.test(f.type);
+  return `<div class="cfile" data-fid="${f.id}">${img?`<div class="cth" style="background-image:url(${urlFor(f.blob)})"></div>`:`<div class="cth doc">📄</div>`}<div class="cfmeta"><span class="cfname">${esc(f.name||"archivo")}</span><button class="crole ${f.rol==="referencia_estilo"?"ref":""}" data-role="${f.id}">${r.t} ▾</button></div></div>`; }
+function paintChat(){
+  const c=state.c; const last=c.chat[c.chat.length-1];
+  $("#chatProg").style.width=Math.max(4,Math.min(100,c.progreso||0))+"%";
+  $("#chatLog").innerHTML = c.chat.map((m,i)=>{
+    const files=(m.files||[]).map(id=>c.files.find(f=>f.id===id)).filter(Boolean);
+    return `<div class="cmsg ${m.role==="user"?"me":"ai"}">${m.role!=="user"?`<div class="cav">C</div>`:""}<div class="cbub">${m.text?`<div>${md(m.text)}</div>`:""}${files.length?`<div class="cfiles">${files.map(fileChip).join("")}</div>`:""}</div></div>`; }).join("")
+    + (CHAT.busy?`<div class="cmsg ai"><div class="cav">C</div><div class="cbub typing"><i></i><i></i><i></i></div></div>`:"");
+  // respuestas rápidas + botón de archivo pedido
+  let q="";
+  if(!CHAT.busy && last && last.role==="assistant"){
+    if(last.pide) q+=`<button class="chip pick" data-pick="${esc(last.pide.rol)}">📎 ${esc(last.pide.boton||"Subir archivo")}</button>`;
+    q+=(last.opciones||[]).map(o=>`<button class="chip" data-opt="${esc(o)}">${esc(o)}</button>`).join("");
+  }
+  if(!CHAT.busy && (c.listo || (c.progreso||0)>=70)) q=`<button class="btn" id="chatBuild">Armar mi campaña ✦</button>`+q;
+  $("#chatQuick").innerHTML=q;
+  $("#chatPend").innerHTML = CHAT.pending.map((f,k)=>`<div class="pend">${/^image\//.test(f.type)?`<div class="cth" style="background-image:url(${urlFor(f.blob)})"></div>`:`<div class="cth doc">📄</div>`}<span>${esc(f.name)}${f.rol&&f.rol!=="auto"?` · ${ROLES[f.rol].t}`:""}</span><button data-unpend="${k}">✕</button></div>`).join("");
+  $("#chatSend2").disabled=CHAT.busy;
+  const log=$("#chatLog"); requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}));
+  $$("[data-opt]").forEach(b=>b.onclick=()=>sendTurn(b.dataset.opt));
+  $$("[data-pick]").forEach(b=>b.onclick=()=>{ CHAT.pendRole=b.dataset.pick; $("#chatFile").click(); });
+  $$("[data-unpend]").forEach(b=>b.onclick=()=>{ CHAT.pending.splice(+b.dataset.unpend,1); paintChat(); });
+  $$("[data-role]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const f=c.files.find(x=>x.id===b.dataset.role); if(!f) return; if(!/^image\//.test(f.type)){ toast("Es un documento de información"); return; }
+    const k=ROLE_CYCLE.indexOf(f.rol); f.rol=ROLE_CYCLE[(k+1)%ROLE_CYCLE.length]; f.userSet=true; saveCampaign(); paintChat(); toast("Marcado como: "+ROLES[f.rol].t); });
+  if($("#chatBuild")) $("#chatBuild").onclick=buildFromChat;
+}
+function nextFileId(c){ return "f"+((c.files||[]).length+CHAT.pending.length+1); }
+$("#chatFile").onchange=e=>{ const c=state.c; for(const f of e.target.files){ if(f.size>15e6){ toast(f.name+" pesa más de 15 MB"); continue; }
+  CHAT.pending.push({id:nextFileId(c), name:f.name, type:f.type||"application/octet-stream", blob:f, rol: CHAT.pendRole || (/^image\//.test(f.type)?"auto":"documento_info")}); }
+  e.target.value=""; CHAT.pendRole=null; paintChat(); $("#chatIn2").focus(); };
+$("#chatAttach").onclick=()=>{ CHAT.pendRole=null; $("#chatFile").click(); };
+$("#chatSend2").onclick=()=>sendTurn();
+$("#chatIn2").onkeydown=e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendTurn(); } };
+bindVoice($("#chatMic2"), t=>{ $("#chatIn2").placeholder=t; }, t=>{ const x=$("#chatIn2"); x.value=(x.value?x.value+" ":"")+t; x.placeholder="Escribe, habla o sube un archivo…"; });
+$("#chatBack").onclick=()=>home();
+
+async function chatCall(system, input){
+  const m=state.models.text; let j;
+  try{ j=await oa("/responses",{model:m, instructions:system, input, text:{format:{type:"json_object"}}}); }
+  catch(e){ if(e.status===401||e.status===429) throw e; console.warn("chat responses:",e.message);
+    const strip = p=> p.type==="input_file"? null : p;
+    try{ j=await oa("/responses",{model:m, instructions:system, input: input.map(x=>Array.isArray(x.content)?{...x,content:x.content.map(strip).filter(Boolean)}:x), text:{format:{type:"json_object"}}}); }
+    catch(e2){ const msgs=[{role:"system",content:system}, ...input.map(x=>({role:x.role, content: Array.isArray(x.content)? toChatParts(x.content.filter(p=>p.type==="input_text").map(p=>p.text).join("\n"), x.content.filter(p=>p.type==="input_image")) : x.content}))];
+      try{ j=await oa("/chat/completions",{model:m, messages:msgs, response_format:{type:"json_object"}}); }catch(e3){ throw e; } } }
+  track("texto", costText(j.usage)); return parseJSON(outText(j));
+}
+async function sendTurn(preset){
+  const c=state.c; if(CHAT.busy) return;
+  const text=(preset!=null?preset:$("#chatIn2").value).trim(); const files=CHAT.pending.splice(0);
+  if(!text && !files.length) return;
+  if(!state.models.text){ try{ await detectModels(); }catch(e){ toast(friendly(e)); return; } }
+  $("#chatIn2").value="";
+  files.forEach(f=>c.files.push(f));
+  c.chat.push({role:"user", text, files:files.map(f=>f.id)});
+  CHAT.busy=true; paintChat(); saveCampaign();
+  try{
+    // historial: textos; archivos anteriores por descripción; archivos nuevos completos
+    const desc = f => `[${f.id}: ${f.name} · rol ${f.rol||"auto"}${f.desc?" · "+f.desc:""}]`;
+    const input = c.chat.slice(-40).map((m,i,arr)=>{
+      const fl=(m.files||[]).map(id=>c.files.find(f=>f.id===id)).filter(Boolean);
+      if(m.role==="assistant") return {role:"assistant", content:m.text};
+      const isLast = i===arr.length-1;
+      if(!isLast) return {role:"user", content:(m.text||"(sin texto)")+(fl.length?"\nArchivos: "+fl.map(desc).join(" "):"")};
+      return {role:"user", content:[{type:"input_text", text:(m.text||"(subí archivos)")+(fl.length?"\nArchivos nuevos: "+fl.map(f=>`[${f.id}: ${f.name}${f.rol&&f.rol!=="auto"?` · rol sugerido ${f.rol}`:""}]`).join(" "):"")}]};
+    });
+    const lastC=input[input.length-1].content;
+    for(const f of files){
+      try{
+        if(/^image\//.test(f.type)){ lastC.push({type:"input_text",text:`Imagen ${f.id}:`}); lastC.push({type:"input_image",image_url:await shrink(f.blob,900)}); }
+        else if(f.type==="application/pdf"){ lastC.push({type:"input_file",filename:f.name,file_data:await blobToDataURL(f.blob)}); }
+        else if(/^text\//.test(f.type)){ lastC.push({type:"input_text",text:`Archivo ${f.id}:\n`+(await f.blob.text()).slice(0,15000)}); }
+      }catch(e){}
+    }
+    const sys = INTERVIEWER + `\n\nESTADO ACTUAL (datos acumulados): ${JSON.stringify(c.datos||{})}\nARCHIVOS YA CLASIFICADOS: ${c.files.filter(f=>f.rol&&f.rol!=="auto").map(desc).join(" ")||"ninguno"}`;
+    const r = await chatCall(sys, input);
+    (r.archivos||[]).forEach(a=>{ const f=c.files.find(x=>x.id===a.id); if(f){ if(!f.userSet && ROLES[a.rol]) f.rol=a.rol; if(a.descripcion) f.desc=a.descripcion; } });
+    c.files.forEach(f=>{ if(f.rol==="auto") f.rol=/^image\//.test(f.type)?"producto":"documento_info"; });
+    if(r.datos && typeof r.datos==="object") c.datos=Object.assign({}, c.datos||{}, r.datos);
+    c.progreso=Math.max(c.progreso||0, +r.progreso||0); c.listo=!!r.listo;
+    if(c.datos.nombre) store.set("cl_name", String(c.datos.nombre).split(" ")[0]);
+    if(c.datos.que_es||c.datos.tipo) c.name=String(c.datos.que_es||c.datos.tipo).replace(/\s+/g," ").slice(0,48);
+    c.chat.push({role:"assistant", text:r.mensaje||"¿Me cuentas un poco más?", opciones:(r.opciones||[]).slice(0,4), pide:r.pide_archivo||null});
+  }catch(e){ c.chat.push({role:"assistant", text:"Uy, no pude procesar eso: "+friendly(e)+"\n¿Lo intentamos de nuevo?", opciones:["Reintentar"]}); if(preset==="Reintentar"){} }
+  CHAT.busy=false; saveCampaign(); paintChat();
+}
+
+/* ---- De la conversación a la campaña ---- */
+function chatToAnswers(c){
+  const d=c.datos||{}; const dest=String(d.destino||"").toLowerCase();
+  const num = v => { const n=parseFloat(String(v||"").replace(/[^\d.]/g,"")); return isFinite(n)&&n>0?n:null; };
+  const objetivo = /tienda|e-?commerce|shop/.test(dest) ? "Vender en mi tienda en línea" : /landing|p[aá]gina|web|sitio/.test(dest) ? "Llevar a mi landing page" : /formulario/.test(dest) ? "Registros con formulario de Meta" : "Que me escriban por WhatsApp";
+  c.answers = {
+    tipo: (t=>/produc/i.test(t)?"Producto":/servic/i.test(t)?"Servicio":/evento/i.test(t)?"Evento":/reto/i.test(t)?"Reto":/oportun|negocio/i.test(t)?"Oportunidad de negocio":"Otro")(String(d.tipo||"")), descripcion: d.que_es||"", objetivo,
+    detalles: { precio: d.precios||"", resaltar: d.resaltar||"", evento: typeof d.evento==="object"?JSON.stringify(d.evento):(d.evento||"") },
+    tienda: /tienda|landing/.test(objetivo) ? { link:d.link||"", pixel:d.pixel||"No sé", modo: /s[ií]/i.test(String(d.agente_tambien||""))?"Tienda + WhatsApp":"Solo tienda" } : null,
+    ubicacion: d.ubicacion||"", publico: d.publico||"",
+    presupuesto: { diario: num(d.presupuesto_diario)||150, dias: num(d.dias)||7, moneda: d.moneda||"MXN" },
+    marca: { nombre: d.nombre||"", compania: d.marca||"", whatsapp: d.whatsapp||"" },
+    agente: typeof d.agente==="object"? d.agente : { estilo: d.agente||"" },
+    tono: d.tono? [String(d.tono)] : []
+  };
+  // archivos → material con su tipo, y referencias aparte
+  c.material = c.files.filter(f=>f.rol!=="referencia_estilo").map(f=>({...f, kind:(ROLES[f.rol]||ROLES.producto).k==="doc"?"doc":(ROLES[f.rol]||ROLES.producto).k}));
+  c.refs = c.files.filter(f=>f.rol==="referencia_estilo").map(f=>f.blob);
+  c.exact=false;
+}
+async function prepCutouts(c){
+  if(!/quit|s[ií]/i.test(String((c.datos||{}).fondo_producto||""))) return;
+  for(const f of c.material.filter(f=>f.kind==="producto"&&/^image\//.test(f.type)&&!f.cut)){
+    try{ const r=cutout(await loadImg(f.blob)); const cv = r.cut ? r.canvas : await aiCutout(f.blob,"producto"); f.cut=await new Promise(res=>cv.toBlob(res,"image/png")); }catch(e){ console.warn("cutout",e); }
+  }
+}
+async function buildFromChat(){ chatToAnswers(state.c); await saveCampaign(true); generate(); }
 
 /* ---------------- Ajustes ---------------- */
 let settingsFrom="s-home";
@@ -1652,7 +1889,7 @@ $("#btnKey").onclick=async()=>{
 /* ---------------- Inicio ---------------- */
 function home(){ show("s-home"); renderHistory(); }
 $("#appname").onclick=()=>{ if(state.key) home(); };
-$("#btnStart").onclick=()=>{  state.answers={}; save(); state.files={material:[],refs:[]}; state.exact=null; state.c=null; state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
+$("#btnStart").onclick=()=>startChat(); const _oldStart=()=>{  state.answers={}; save(); state.files={material:[],refs:[]}; state.exact=null; state.c=null; state.step=0; state.returnToReview=false; show("s-wizard"); renderStep(); };
 $("#btnNew").onclick=()=>home();
 
 state.key ? home() : show("s-setup");
