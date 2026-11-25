@@ -305,6 +305,11 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 .typing .tstat{font-size:12px;color:var(--muted);margin-left:8px;font-style:normal;width:auto;height:auto;background:none;animation:none}
 #tabs.hidden{display:none}
 .varpick{width:100%;margin-bottom:4px}.varpick>span{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}.varpick>div{display:flex;flex-wrap:wrap;gap:6px}.varpick .chip{min-width:44px}.varpick .chip.on{background:var(--o);color:#111;border-color:var(--o)}
+#vRecWrap{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;max-width:560px;margin:0 auto}
+#vRecWrap.hidden{display:none}
+#vRecBar{background:#141414;border-color:rgba(255,90,31,.55);box-shadow:0 0 18px rgba(255,90,31,.25),0 10px 30px rgba(0,0,0,.6);align-items:center}
+#vRecWrap .rechint{text-shadow:0 1px 6px #000}
+#vRecWrap .hidden{display:none!important}
 </style>
 </head>
 <body>
@@ -484,7 +489,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "6.1";
+const VERSION = "6.3";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -687,17 +692,47 @@ async function startRec(onLevel){
   };
 }
 const fmtT = s => Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
-function bindVoice(btn, setLabel, onText){
+/* Grabación de voz igual en toda la app: barra con ondas, tiempo, ✕ cancelar, ✓ revisar y ➤ enviar */
+const VB={r:null, hist:[], onText:null, onSend:null};
+function vbEl(){
+  let el=document.getElementById("vRecWrap"); if(el) return el;
+  el=document.createElement("div"); el.id="vRecWrap"; el.className="hidden";
+  el.innerHTML=`<div class="chin" id="vRecBar"><button class="cic" id="vCancel" aria-label="Cancelar">✕</button>
+    <div class="recmid" id="vLive"><span class="recdot"></span><canvas id="vWave"></canvas><span id="vTime">0:00</span></div>
+    <div class="recmid hidden" id="vBusy"><span class="dots"><i></i><i></i><i></i></span><span>Transcribiendo…</span></div>
+    <button class="cic ok" id="vDone" aria-label="Terminar y revisar">✓</button><button class="send" id="vSend" aria-label="Enviar">➤</button></div>
+    <p class="rechint" id="vHint"></p>`;
+  document.body.appendChild(el);
+  el.querySelector("#vCancel").onclick=()=>{ if(VB.r){ VB.r.cancel(); VB.r=null; } vbUI("off"); };
+  el.querySelector("#vDone").onclick=()=>vbStop(false);
+  el.querySelector("#vSend").onclick=()=>vbStop(true);
+  return el;
+}
+function vbUI(mode){ const el=vbEl(); el.classList.toggle("hidden",mode==="off"); el.querySelector("#vLive").classList.toggle("hidden",mode!=="rec"); el.querySelector("#vBusy").classList.toggle("hidden",mode!=="busy");
+  ["#vDone","#vSend","#vCancel"].forEach(k=>el.querySelector(k).disabled=mode==="busy");
+  el.querySelector("#vSend").classList.toggle("hidden",!VB.onSend);
+  el.querySelector("#vHint").textContent = mode==="rec" ? (VB.onSend?"✓ para revisar el texto · ➤ para enviar directo":"Toca ✓ cuando termines de hablar") : ""; }
+function vbWave(){ const cv=document.getElementById("vWave"); if(!cv) return; const w=cv.clientWidth, h=cv.clientHeight; if(!w) return; if(cv.width!==w*2){ cv.width=w*2; cv.height=h*2; }
+  const x=cv.getContext("2d"); x.clearRect(0,0,cv.width,cv.height); const n=Math.floor(cv.width/12); const H=VB.hist.slice(-n);
+  for(let k=0;k<n;k++){ const v=H[k-(n-H.length)]||0; const bh=Math.max(4,v*cv.height*0.9); x.fillStyle=`rgba(255,${120-v*60|0},${60-v*40|0},${.45+v*.55})`; const bx=k*12+3; x.beginPath(); x.roundRect? x.roundRect(bx,(cv.height-bh)/2,6,bh,3) : x.rect(bx,(cv.height-bh)/2,6,bh); x.fill(); } }
+async function vbStart(onText, onSend){
+  if(VB.r) return; VB.onText=onText; VB.onSend=onSend||null; VB.hist=[];
+  try{ vbUI("rec"); document.getElementById("vTime").textContent="0:00";
+    VB.r=await startRec((lvl,sec)=>{ VB.hist.push(lvl); document.getElementById("vTime").textContent=fmtT(sec); vbWave(); });
+  }catch(e){ VB.r=null; vbUI("off"); toast("No tengo permiso de micrófono. Usa el micrófono de tu teclado 🎙️"); }
+}
+async function vbStop(andSend){
+  const cur=VB.r; if(!cur) return; VB.r=null; vbUI("busy");
+  try{ const {blob,secs}=await cur.stop(); if(secs<0.6){ vbUI("off"); toast("Muy corto, intenta de nuevo"); return; }
+    const t=(await transcribe(blob,secs)).trim(); vbUI("off");
+    if(!t){ toast("No alcancé a escucharte, intenta de nuevo"); return; }
+    VB.onText&&VB.onText(t); if(andSend&&VB.onSend) VB.onSend(); else toast("Listo, revisa el texto");
+  }catch(e){ vbUI("off"); toast(friendly(e)); }
+}
+function bindVoice(btn, setLabel, onText, onSend){
   if(!btn) return;
   if(!navigator.mediaDevices||!window.MediaRecorder){ btn.style.display="none"; setLabel("Usa el micrófono de tu teclado 🎙️ para dictar."); return; }
-  let r=null;
-  btn.onclick=async()=>{
-    if(r){ const cur=r; r=null; btn.classList.remove("rec"); btn.style.boxShadow=""; setLabel("✍️ Transcribiendo lo que dijiste…");
-      try{ const {blob,secs}=await cur.stop(); const t=await transcribe(blob,secs); onText(t.trim()); setLabel("✓ Listo. Puedes editarlo o grabar más."); }catch(e){ setLabel(friendly(e)); } return; }
-    try{ r=await startRec((lvl,s)=>{ btn.style.boxShadow=`0 0 0 ${4+lvl*16}px rgba(255,90,31,${.18+lvl*.35})`; setLabel(`🔴 Escuchando… ${fmtT(s)} · toca de nuevo para terminar`); });
-      btn.classList.add("rec"); }
-    catch(e){ r=null; setLabel("Aquí no tengo permiso de micrófono. Usa el micrófono de tu teclado 🎙️ para dictar."); }
-  };
+  btn.onclick=()=>vbStart(onText, onSend);
 }
 
 /* ---------------- Preguntas ---------------- */
@@ -1008,7 +1043,7 @@ CALIDAD DEL MATERIAL: si el usuario advirtió que su foto es de baja calidad o n
 const FLYER_SYSTEM = `Eres un director de arte senior que diseña flyers publicitarios para redes (Facebook, Instagram, WhatsApp) para emprendedores de Latinoamérica. Español de México. Con la información de la conversación diseña EXACTAMENTE el número de variaciones de flyer que pidió el usuario (el arreglo "anuncios" debe tener esa cantidad; si no dijo, 2), cada una con un estilo visual claramente distinto (ej. premium oscuro, limpio claro, fotográfico cinematográfico, tipográfico audaz, periódico), respetando sus datos EXACTOS (fechas, horas, precios con su moneda, lugar, nombres, teléfono). Si el usuario tiene diseños favoritos guardados o referencias, la primera variación sigue ese gusto.
 Un flyer SÍ lleva la información clave ordenada en bloques (titular, subtítulo corto, datos con íconos, llamado a la acción), nunca párrafos. Nada de datos pendientes ni etiquetas internas.
 Devuelve SOLO JSON válido:
-{"resumen":"1 línea", "anuncios":[{"angulo":"nombre corto del estilo (ej. Premium oscuro)", "formato":"", "por_que_funciona":"1 línea", "texto_en_imagen":"todo el texto que va en el flyer, en orden, separado por ' · ' (titular · subtítulo · fecha · hora · lugar · precio · CTA)", "prompt_imagen":"descripción visual detallada: fondo, composición, jerarquía, paleta, tipografías, dónde va cada bloque de información, personas/producto", "texto_principal":"texto corto para publicar con el flyer (2 a 4 líneas)", "titulo":"", "descripcion":"", "cta":""}],
+{"resumen":"1 línea", "anuncios":[{"angulo":"nombre corto del estilo (ej. Premium oscuro)", "formato":"", "por_que_funciona":"1 línea", "texto_en_imagen":"todo el texto que va en el flyer, en orden, separado por ' · ' (titular · subtítulo · fecha · hora · lugar · precio · CTA)", "prompt_imagen":"descripción visual detallada: fondo, composición, jerarquía, paleta, tipografías, dónde va cada bloque de información, logotipos, personas/producto"}],
  "datos_clave":{"producto":"","precio":"","oferta":"","fecha":"","lugar":"","contacto":""}}`;
 
 function briefFromChat(c){
@@ -1116,6 +1151,16 @@ async function loadInspiration(c){
   for(const u of pool){ try{ const b=await (await fetch(u)).blob(); if(/^image\//.test(b.type)) blobs.push(b); }catch(e){} }
   c._insp={blobs, notas:[bi.notas,bg.notas,a.notas,g.notas].filter(Boolean).join("\n")}; return c._insp;
 }
+/* ---- Logos y marcas del usuario ---- */
+const logoFile = c => (c.material||[]).find(f=>f.kind==="logo"&&/^image\//.test(f.type)) || null;
+function brandRule(c){
+  const d=c.datos||{}, pref=String(d.logos||""), marca=d.marca||((c.answers||{}).marca||{}).compania||"";
+  let r="";
+  if(/quit/i.test(pref)) r=`\nMARCAS: el usuario pidió QUITAR los logotipos de sus archivos; no los incluyas.`;
+  else r=`\nMARCAS Y LOGOS DEL USUARIO (obligatorio): ${marca?`su marca/compañía es "${marca}". `:""}Conserva visibles y SIN redibujar los logotipos, nombres de marca y empaques de SUS productos que aparecen en sus fotos, flyers o documentos (ej. el logotipo de su compañía y los de sus productos). Solo se omiten marcas de terceros que no tengan relación con él.`;
+  if(logoFile(c)) r+=`\nLa ÚLTIMA imagen adjunta es el LOGOTIPO OFICIAL del usuario: colócalo exactamente igual (forma, colores, letras), limpio y bien visible, normalmente arriba o en una esquina; no lo deformes ni lo inventes.`;
+  return r;
+}
 /* ---- Mis diseños (favoritos): la IA aprende el gusto de la persona ---- */
 async function loadFavs(c){
   if(c && c._fav) return c._fav;
@@ -1215,7 +1260,7 @@ const KIND_RULE={
 };
 const PRIORITY={"Producto":["producto","persona","lugar","flyer"],"Evento":["flyer","persona","lugar","producto"],"Servicio":["persona","lugar","producto","flyer"],"Reto":["persona","producto","flyer","lugar"],"Oportunidad de negocio":["persona","flyer","lugar","producto"]};
 function pickInput(c,i){
-  const imgs=(c.material||[]).filter(f=>/^image\//.test(f.type)&&f.kind!=="etiqueta"); if(!imgs.length) return null;
+  const imgs=(c.material||[]).filter(f=>/^image\//.test(f.type)&&f.kind!=="etiqueta"&&f.kind!=="logo"); if(!imgs.length) return null;
   const order=PRIORITY[c.answers.tipo]||["producto","persona","flyer","lugar"];
   if(c.answers.tipo==="Producto"){ const p=imgs.filter(f=>f.kind==="producto"); if(p.length) return p[i%p.length]; }
   const sorted=[...imgs].sort((x,y)=>order.indexOf(x.kind)-order.indexOf(y.kind)); return sorted[i%sorted.length];
@@ -1231,11 +1276,12 @@ function imagePrompt(ad, c, input){
   p+=`\n${DESIGN_RULES}\nDeja márgenes amplios arriba y abajo (la imagen se recortará a 4:5). Sin marcas de agua.`;
   const d=datosTxt(c); if(d) p+=`\nInformación INTERNA de contexto (no la copies con sus etiquetas; si usas un dato, solo su valor y exacto): ${d}.`;
   if(c.kind==="flyer") p+=`\nEXCEPCIÓN FLYER (manda sobre la regla de pocas palabras): es un flyer, así que SÍ incluye toda la información del texto obligatorio, organizada en bloques claros con jerarquía (titular grande, subtítulo, datos con íconos, botón de acción), legible en celular; nunca párrafos.`;
+  p+=brandRule(c);
   if(c._fav && c._fav.notas) p+=`\nGUSTO DEL USUARIO (diseños que guardó como favoritos; prioriza este estilo): ${c._fav.notas.slice(0,1500)}`;
   if(c._insp && c._insp.notas) p+=`\nGuía de estilo del líder: ${c._insp.notas.slice(0,8000)}`;
   if(c.exact) p+=`\nIMPORTANTE: no dibujes ningún producto, frasco, sobre, envase ni empaque. Crea solo el fondo y la escena con una superficie o pedestal vacío centrado en la parte inferior (ocupa el 45% inferior), donde después se colocará la foto real del producto. Pon el texto en el tercio superior.`;
   else if(input) p+=`\nLa primera imagen adjunta ${KIND_RULE[input.kind]||KIND_RULE.producto}`;
-  if((c.refs||[]).length) p+=`\nLa ${!c.exact&&input?"segunda":"primera"} imagen adjunta es solo referencia de estilo (colores, composición, ambiente): no copies su contenido, marcas, personas ni textos.`;
+  if((c.refs||[]).length) p+=`\nLa ${!c.exact&&input?"segunda":"primera"} imagen adjunta es solo referencia de estilo (colores, composición, ambiente): no copies su contenido, personas ni textos (si muestra logotipos de la marca del usuario, esos SÍ puedes usarlos).`;
   else if(c._favUse) p+=`\nLa ${!c.exact&&input?"segunda":"primera"} imagen adjunta es un diseño que el usuario guardó como FAVORITO: sigue su estilo (paleta, tipografía, composición, ambiente) pero no copies su texto, producto ni personas.`;
   else if(c._inspUse) p+=`\nLa ${!c.exact&&input?"segunda":"primera"} imagen adjunta es un ejemplo de la biblioteca de inspiración: iguala su NIVEL de diseño, composición y estilo, pero no copies su texto, marca, producto ni personas.`;
   return p;
@@ -1268,6 +1314,7 @@ async function makeImage(i, instruction){
       const favs=(c._fav&&c._fav.list)||[]; const fb=(!ref && favs.length && i%2===0)? favs[(i/2|0)%favs.length].blob : null; c._favUse=!!fb;
       const ib=(!ref && !fb && c._insp && c._insp.blobs.length)? c._insp.blobs[i%c._insp.blobs.length] : null; c._inspUse=!!ib;
       if(ref) inputs.push(ref); else if(fb) inputs.push(fb); else if(ib) inputs.push(ib);
+      const lg=logoFile(c); if(lg) inputs.push(lg.blob);
       const nu = await genImage(imagePrompt(ad,c,input), inputs); pushHistory(ad); ad.img = nu; ad.bg=null;
     }
     pending.delete(c.id+":"+i); idb.put(c).catch(()=>{}); if(state.c===c) paintImage(i);
@@ -1368,10 +1415,10 @@ function renderAds(){
         <span class="tag">${ad.reserva?"Reserva · ":""}${fl?"Flyer":"Anuncio"} ${i+1} · ${esc(ad.angulo)}</span>
         ${ad.formato||ad.etapa?`<div class="note" style="margin:0 0 4px;color:var(--o)">${esc([ad.formato,ad.etapa].filter(Boolean).join(" · "))}</div>`:""}
         <div class="note" style="margin-top:0">${esc(ad.por_que_funciona||"")}</div>
-        ${ad.texto_principal?field(fl?"Texto para publicar":"Texto principal",ad.texto_principal):""}
-        ${ad.titulo?field("Título",ad.titulo):""}
-        ${ad.descripcion?field("Descripción",ad.descripcion):""}
-        ${ad.cta?`<div class="field"><div class="lbl">Botón</div><div class="txt">${esc(ad.cta)}</div></div>`:""}
+        ${!fl&&ad.texto_principal?field("Texto principal",ad.texto_principal):""}
+        ${!fl&&ad.titulo?field("Título",ad.titulo):""}
+        ${!fl&&ad.descripcion?field("Descripción",ad.descripcion):""}
+        ${!fl&&ad.cta?`<div class="field"><div class="lbl">Botón</div><div class="txt">${esc(ad.cta)}</div></div>`:""}
         ${ad.advertencia?`<div class="warnline">⚠️ ${esc(ad.advertencia)}</div>`:""}
         ${ad.version_segura&&(ad.version_segura.texto_principal||ad.version_segura.titulo)?`<details class="safe"><summary>Ver versión segura</summary>${ad.version_segura.texto_principal?field("Texto principal (seguro)",ad.version_segura.texto_principal):""}${ad.version_segura.titulo?field("Título (seguro)",ad.version_segura.titulo):""}</details>`:""}
         <div class="row">
@@ -1382,7 +1429,7 @@ function renderAds(){
           <button class="btn line sm favbtn" data-fav="${i}" data-need-img="${i}" disabled>♡ Guardar diseño</button>
           ${(ad.history||[]).length?`<button class="btn line sm" data-undo="${i}">↩ Deshacer</button>`:""}
         </div>
-        <details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad,c,c.exact?null:pickInput(c,i)))}</details>
+${fl?"":`<details><summary>Prompt de la imagen</summary>${field("Prompt",imagePrompt(ad,c,c.exact?null:pickInput(c,i)))}</details>`}
       </div>
     </div>`).join("") +
     `<button class="btn line full" id="addAd" style="margin-top:14px">${fl?"+ Otra variación de flyer":"+ Agregar concepto de reserva"}</button>
@@ -1750,7 +1797,7 @@ function renderAgent(){
   const m=$("#msgs"); m.scrollTop=m.scrollHeight;
   $$(".bub.a[data-m]").forEach(b=>b.onclick=()=>{ selMsg=+b.dataset.m; renderAgent(); $("#fixBox").scrollIntoView({behavior:"smooth",block:"center"}); });
   $("#chatSend").onclick=sendChat; $("#chatIn").onkeydown=e=>{ if(e.key==="Enter") sendChat(); };
-  bindVoice($("#chatMic"), t=>$("#chatLbl").textContent=t, t=>{ $("#chatIn").value=t; sendChat(); });
+  bindVoice($("#chatMic"), t=>$("#chatLbl").textContent=t, t=>{ const x=$("#chatIn"); x.value=(x.value?x.value.trim()+" ":"")+t; }, ()=>sendChat());
   bindVoice($("#fixMic"), t=>$("#fixLbl").textContent=t, t=>{ const x=$("#fixTxt"); x.value=(x.value?x.value+" ":"")+t; });
   $("#fixGo").onclick=applyFix; $("#fixCancel").onclick=()=>{ selMsg=-1; renderAgent(); };
   $("#chatReset").onclick=()=>{ A.chat=[]; selMsg=-1; saveCampaign(); renderAgent(); };
@@ -1922,9 +1969,9 @@ function paintHistoryThumb(){}
    ========================================================= */
 const ROLES = {
   producto:{t:"Producto", k:"producto"}, etiqueta:{t:"Etiqueta", k:"etiqueta"}, persona:{t:"Persona", k:"persona"}, lugar:{t:"Lugar", k:"lugar"},
-  flyer_usar:{t:"Flyer a mejorar", k:"flyer"}, referencia_estilo:{t:"Referencia", k:"referencia"}, documento_info:{t:"Información", k:"doc"}, auto:{t:"Revisando…", k:"auto"}
+  flyer_usar:{t:"Flyer a mejorar", k:"flyer"}, logo:{t:"Logo", k:"logo"}, referencia_estilo:{t:"Referencia", k:"referencia"}, documento_info:{t:"Información", k:"doc"}, auto:{t:"Revisando…", k:"auto"}
 };
-const ROLE_CYCLE=["producto","persona","lugar","flyer_usar","referencia_estilo","etiqueta"];
+const ROLE_CYCLE=["producto","persona","lugar","flyer_usar","referencia_estilo","logo","etiqueta"];
 const INTERVIEWER = `Eres Cel.IA, la asistente de la comunidad Celion que arma campañas de Meta Ads y agentes de WhatsApp. Conversas por chat con un emprendedor: español de México, cálida, clara y breve (2 a 4 líneas por mensaje, máximo 1 emoji). Tu meta es reunir TODO lo necesario para una campaña excelente haciendo UNA pregunta a la vez (puedes juntar 2 datos muy relacionados). Aunque tardes un poco, pregunta lo necesario; nunca abrumes.
 
 QUÉ NECESITAS (pregunta solo lo que falte; si ya está en lo que dijo o en sus archivos, confírmalo en lugar de preguntarlo):
@@ -1957,28 +2004,30 @@ c) un flyer o anuncio (suyo o de otros) que manda solo como IDEA o inspiración 
 d) documento o captura con información (documento_info).
 Si un flyer puede ser b) o c), pregunta con opciones: ["Mejora este flyer","Solo es idea de estilo","Toma sus datos"]. Al confirmar, di en una línea cómo lo vas a usar ("Lo tomo solo como inspiración de colores y estructura, sin copiarlo").
 
+LOGOS Y MARCAS: si en sus fotos, flyers o documentos aparecen logotipos o marcas (su compañía, sus productos), pregunta una vez: "Veo el logo de … ¿Lo mantengo en los diseños?" con opciones ["Mantén los logos","Quítalos","Te mando mi logo"]. Si elige mandar su logo, pide el archivo con pide_archivo rol "logo". Guarda la respuesta en datos.logos ("mantener" | "quitar" | "logo propio").
 DISEÑOS FAVORITOS: si en ESTADO se indica que la persona tiene diseños favoritos guardados, cuando hablen de estilo pregunta si quiere seguir ese estilo (["Sí, mi estilo","Algo diferente"]) y guarda datos.usar_favoritos "Sí" o "No".
 
 Cuando tengas lo esencial (1, 3, 4, 8, 9 y 11 como mínimo) y ya hayas cubierto lo demás o el usuario no lo tenga, haz un RESUMEN corto en viñetas y pregunta "¿Armo tu campaña?" con listo=true.
 
-ARCHIVOS: cada archivo llega con un id (f1, f2…) y, si lo subió desde un botón que tú pediste, con su rol sugerido. Clasifica cada archivo NUEVO en "archivos" con rol: producto | etiqueta | persona | lugar | flyer_usar (su flyer o diseño para mejorar/usar) | referencia_estilo (inspiración, NO se usa tal cual) | documento_info (información), con una descripción breve de lo que ves (para productos, di también cómo es el fondo). Usa el contexto: si acabas de pedir referencias, lo que suba es referencia_estilo. Si no está claro, clasifícalo como mejor creas y pregunta para confirmar.
+ARCHIVOS: cada archivo llega con un id (f1, f2…) y, si lo subió desde un botón que tú pediste, con su rol sugerido. Clasifica cada archivo NUEVO en "archivos" con rol: producto | etiqueta | persona | lugar | logo (su logotipo) | flyer_usar (su flyer o diseño para mejorar/usar) | referencia_estilo (inspiración, NO se usa tal cual) | documento_info (información), con una descripción breve de lo que ves (para productos, di también cómo es el fondo). Usa el contexto: si acabas de pedir referencias, lo que suba es referencia_estilo. Si no está claro, clasifícalo como mejor creas y pregunta para confirmar.
 
 ESTILO: no limites ni juzgues lo que quiere decir de su producto; si algo puede dar problemas con Meta, menciónalo después en una línea y sigue. No inventes datos.
 "opciones": 2 a 4 respuestas rápidas cortas cuando ayuden (tipos, Sí/No, presupuestos 100/150/200/300 MXN, días 5/7/10/14, destinos…). Si la pregunta es abierta, deja [].
-"pide_archivo": cuando pidas una foto o documento, {"rol":"producto|persona|lugar|flyer_usar|referencia_estilo|documento_info|etiqueta","boton":"texto corto del botón"}; si no, null.
+"pide_archivo": cuando pidas una foto o documento, {"rol":"producto|persona|lugar|logo|flyer_usar|referencia_estilo|documento_info|etiqueta","boton":"texto corto del botón"}; si no, null.
 
 Devuelve SOLO JSON válido:
 {"mensaje":"", "opciones":[], "pide_archivo":null, "archivos":[{"id":"","rol":"","descripcion":"","calidad":"buena|regular|baja"}],
- "datos":{todo lo que sabes hasta ahora, ACUMULADO, con estas claves cuando apliquen: "tipo","que_es","resaltar","precios","evento","destino","link","pixel","agente_tambien","fondo_producto","estilo","angulos","ubicacion","publico","presupuesto_diario","moneda","dias","agente","nombre","marca","whatsapp","tono","usar_favoritos","notas"},
+ "datos":{todo lo que sabes hasta ahora, ACUMULADO, con estas claves cuando apliquen: "tipo","que_es","resaltar","precios","evento","destino","link","pixel","agente_tambien","fondo_producto","estilo","angulos","ubicacion","publico","presupuesto_diario","moneda","dias","agente","nombre","marca","whatsapp","tono","logos","usar_favoritos","notas"},
  "progreso": 0, "listo": false}`;
 
 const FLYER_INTERVIEWER = `Eres Cel.IA, la asistente de diseño de la comunidad Celion. Aquí la persona SOLO quiere un flyer (sin campaña). Español de México, cálida, breve (2 a 3 líneas, máximo 1 emoji). Haz UNA pregunta a la vez y sé rápida: con 3 a 5 intercambios debe bastar.
 NECESITAS: 1) de qué es el flyer (evento, producto, servicio, promoción, oportunidad) y su titular o mensaje principal; 2) los datos que deben ir EXACTOS (fecha, hora, lugar, precio, cortesía, teléfono/WhatsApp, link, nombre del ponente…); 3) fotos reales (producto, ponente, lugar, logo) si las tiene; 4) estilo: si tiene una referencia o flyer que le guste, o prefiere que propongas (si tiene diseños favoritos guardados, ofrece usar ese estilo); 5) formato: post (4:5), historia (9:16) o ambos. (Las variaciones las elige la persona con un botón al final; no las preguntes.)
 CALIDAD Y PROPÓSITO DE ARCHIVOS: igual que siempre: distingue material real (producto, persona, lugar, logo), su flyer para mejorar (flyer_usar), referencia de estilo (referencia_estilo) o información (documento_info). Si una foto está borrosa, oscura o pequeña, dilo con calma: "Si tienes una con mejor calidad, queda mucho mejor; si no, trabajo con esta 👍" con opciones ["Te mando otra","Usa esta"].
+LOGOS Y MARCAS: si en sus archivos aparecen logotipos o marcas (su compañía como Celion, sus productos), pregunta una vez: "Veo el logo de … ¿Lo mantengo en el flyer?" con opciones ["Mantén los logos","Quítalos","Te mando mi logo"]; si no hay logos en sus archivos, pregunta si quiere poner el logo de su marca. Si elige mandarlo, pide_archivo con rol "logo". Guarda datos.logos ("mantener" | "quitar" | "logo propio") y datos.marca.
 Cuando tengas lo esencial (1 y 2), haz un resumen corto en viñetas y pregunta "¿Lo diseño?" con listo=true.
 Devuelve SOLO JSON válido:
 {"mensaje":"", "opciones":[], "pide_archivo":null, "archivos":[{"id":"","rol":"","descripcion":"","calidad":"buena|regular|baja"}],
- "datos":{acumulado: "tipo","que_es","titulo","evento","precios","contacto","link","estilo","formato","variaciones","fondo_producto","nombre","marca","usar_favoritos","notas"},
+ "datos":{acumulado: "tipo","que_es","titulo","evento","precios","contacto","link","estilo","formato","variaciones","fondo_producto","nombre","marca","logos","usar_favoritos","notas"},
  "progreso": 0, "listo": false}`;
 const CHAT = { busy:false, pending:[], pendRole:null };
 const WELCOME = () => ({ role:"assistant", text:`¡Hola${(store.get("cl_name","")?", "+store.get("cl_name",""):"")}! Soy **Cel.IA** ✨\nVamos a armar tu campaña completa platicando. Puedes escribirme, mandarme audio o subir fotos y documentos en cualquier momento.\n\n¿Qué quieres promocionar?`, opciones:["Un producto","Un servicio","Un evento","Un reto","Oportunidad de negocio","Otra cosa"] });
