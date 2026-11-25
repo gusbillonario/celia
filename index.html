@@ -489,7 +489,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "6.5";
+const VERSION = "6.6";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -516,6 +516,22 @@ const state = {
 };
 
 /* ---------------- Almacenamiento (IndexedDB) ---------------- */
+/* iPhone: las fotos elegidas y los Blobs guardados en IndexedDB pueden "caducar" (el archivo temporal desaparece).
+   Por eso todo se guarda como bytes (ArrayBuffer) y en memoria se usan Blobs propios. */
+const bufCache=new WeakMap();
+async function memBlob(b){ return new Blob([await b.arrayBuffer()],{type:b.type||"application/octet-stream"}); }
+async function enc(v){
+  if(v instanceof Blob){ try{ let d=bufCache.get(v); if(!d){ d=await v.arrayBuffer(); bufCache.set(v,d); } return {__b:1,t:v.type,d}; }catch(e){ return null; } }
+  if(Array.isArray(v)) return Promise.all(v.map(enc));
+  if(v && typeof v==="object" && v.constructor===Object){ const o={}; for(const k of Object.keys(v)){ if(k[0]==="_") continue; o[k]=await enc(v[k]); } return o; }
+  return v;
+}
+async function dec(v){
+  if(v instanceof Blob){ try{ return await memBlob(v); }catch(e){ return null; } }   // datos viejos
+  if(Array.isArray(v)) return Promise.all(v.map(dec));
+  if(v && typeof v==="object"){ if(v.__b===1){ const b=new Blob([v.d],{type:v.t}); bufCache.set(b,v.d); return b; } const o={}; for(const k of Object.keys(v)) o[k]=await dec(v[k]); return o; }
+  return v;
+}
 const idb = {
   db:null,
   open(){ if(this.db) return Promise.resolve(this.db);
@@ -523,12 +539,12 @@ const idb = {
       r.onupgradeneeded=()=>{ const d=r.result; if(!d.objectStoreNames.contains("campaigns")) d.createObjectStore("campaigns",{keyPath:"id"}); if(!d.objectStoreNames.contains("designs")) d.createObjectStore("designs",{keyPath:"id"}); };
       r.onsuccess=()=>{this.db=r.result;res(this.db);}; r.onerror=()=>rej(r.error); }); },
   async tx(mode,fn,store="campaigns"){ const db=await this.open(); return new Promise((res,rej)=>{ const t=db.transaction(store,mode); const s=t.objectStore(store); const r=fn(s); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); }); },
-  put(o){ return this.tx("readwrite",s=>s.put(o)); },
-  get(id){ return this.tx("readonly",s=>s.get(id)); },
-  all(){ return this.tx("readonly",s=>s.getAll()); },
+  async put(o){ const e=await enc(o); return this.tx("readwrite",s=>s.put(e)); },
+  async get(id){ return dec(await this.tx("readonly",s=>s.get(id))); },
+  async all(){ return dec(await this.tx("readonly",s=>s.getAll())); },
   del(id){ return this.tx("readwrite",s=>s.delete(id)); },
-  dPut(o){ return this.tx("readwrite",s=>s.put(o),"designs"); },
-  dAll(){ return this.tx("readonly",s=>s.getAll(),"designs"); },
+  async dPut(o){ const e=await enc(o); return this.tx("readwrite",s=>s.put(e),"designs"); },
+  async dAll(){ return dec(await this.tx("readonly",s=>s.getAll(),"designs")); },
   dDel(id){ return this.tx("readwrite",s=>s.delete(id),"designs"); }
 };
 let saveT=null;
@@ -611,7 +627,7 @@ function friendly(e){
   if(isRate(e)) return "OpenAI pidió esperar un momento por exceso de solicitudes. Toca Reintentar en unos segundos.";
   if(e.status===429 || /quota|billing|insufficient/i.test(m)) return "Tu cuenta de OpenAI no tiene saldo o llegó a su límite. Agrega saldo en Billing.";
   if(/verif/i.test(m)) return "OpenAI pide verificar tu organización para generar imágenes: Settings → Organization → Verify. Después vuelve a intentar.";
-  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return location.protocol!=="https:" ? "Estás abriendo el archivo como vista previa y ahí la conexión está bloqueada. Abre la app desde su link (https://…)." : "No hay conexión con OpenAI. Revisa tu internet e intenta de nuevo.";
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return location.protocol!=="https:" ? "Estás abriendo el archivo como vista previa y ahí la conexión está bloqueada. Abre la app desde su link (https://…)." : (navigator.onLine===false ? "No hay internet. Revisa tu conexión e intenta de nuevo." : "No se pudo enviar a OpenAI (a veces es una foto que el teléfono ya no deja leer). Intenta de nuevo; si sigue, vuelve a subir esa foto.");
   return m;
 }
 function pick(ids, prefs, re, avoid){ for(const p of prefs) if(ids.includes(p)) return p; const c=ids.filter(i=>re.test(i)&&!(avoid&&avoid.test(i))).sort().reverse(); return c[0]||prefs[prefs.length-1]; }
@@ -1610,7 +1626,7 @@ function bindPhoto(c){
   const load=async blob=>{ studioBusy(true, O.how==="ia"?"La IA está recortando…":"Quitando el fondo…");
     try{ const cv=await prepareOverlay(blob,O.kind,O.how); O.canvas=cv; O.url=cv.toDataURL("image/png"); O.w = cv.width/cv.height < 0.8 ? 34 : 48; O.y = O.kind==="persona"? 60 : 64; studioBusy(false); paintStudio(); }
     catch(e){ studioBusy(false); $("#ovLbl").textContent=friendly(e)+" · Prueba con 'Con IA' o 'No quitar'."; } };
-  if($("#ovFile")) $("#ovFile").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) load(f); };
+  if($("#ovFile")) $("#ovFile").onchange=async e=>{ const f=e.target.files[0]; e.target.value=""; if(f){ try{ load(await memBlob(f)); }catch(er){ toast("No pude leer esa foto, intenta de nuevo"); } } };
   $$("[data-om]").forEach(t=>t.onclick=()=>{ const f=(c.material||[]).filter(f=>/^image\//.test(f.type))[+t.dataset.om]; if(f){ if(f.kind==="producto") O.kind="producto"; load(f.blob); } });
   if($("#ovSize")) $("#ovSize").oninput=e=>{ O.w=+e.target.value; const o=$("#imgov"); if(o) o.style.width=O.w+"%"; };
   if($("#ovShadow")) $("#ovShadow").onclick=()=>{ O.shadow=!O.shadow; paintStudio(); };
@@ -2090,8 +2106,9 @@ function paintChat(){
   $$("[data-nvar]").forEach(b=>b.onclick=()=>{ c.datos=c.datos||{}; c.datos.variaciones=+b.dataset.nvar; saveCampaign(); paintChat(); });
 }
 function nextFileId(c){ return "f"+((c.files||[]).length+CHAT.pending.length+1); }
-$("#chatFile").onchange=e=>{ const c=state.c; for(const f of e.target.files){ if(f.size>15e6){ toast(f.name+" pesa más de 15 MB"); continue; }
-  CHAT.pending.push({id:nextFileId(c), name:f.name, type:f.type||"application/octet-stream", blob:f, rol: CHAT.pendRole || (/^image\//.test(f.type)?"auto":"documento_info")}); }
+$("#chatFile").onchange=async e=>{ const c=state.c; for(const f of [...e.target.files]){ if(f.size>15e6){ toast(f.name+" pesa más de 15 MB"); continue; }
+  let blob; try{ blob=await memBlob(f); }catch(er){ toast("No pude leer "+f.name+". Intenta subirla de nuevo."); continue; }
+  CHAT.pending.push({id:nextFileId(c), name:f.name, type:f.type||"application/octet-stream", blob, rol: CHAT.pendRole || (/^image\//.test(f.type)?"auto":"documento_info")}); }
   e.target.value=""; CHAT.pendRole=null; paintChat(); $("#chatIn2").focus(); };
 $("#chatAttach").onclick=()=>{ CHAT.pendRole=null; $("#chatFile").click(); };
 $("#chatSend2").onclick=()=>{ if(VREC.r) return chatRecStop(true); sendTurn(); };
