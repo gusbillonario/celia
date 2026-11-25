@@ -310,6 +310,47 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
 #vRecBar{background:#141414;border-color:rgba(255,90,31,.55);box-shadow:0 0 18px rgba(255,90,31,.25),0 10px 30px rgba(0,0,0,.6);align-items:center}
 #vRecWrap .rechint{text-shadow:0 1px 6px #000}
 #vRecWrap .hidden{display:none!important}
+/* Administrador de anuncios simulado */
+.am{background:#f0f2f5;color:#1c2b33;border-radius:14px;overflow:hidden;margin-bottom:14px;font:13px/1.35 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;border:1px solid #2a2a2a}
+.am b{font-weight:600}
+.am-url{background:#dfe3e8;color:#56616b;font-size:11px;padding:6px 10px;text-align:center}
+.am-top{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:9px 12px;border-bottom:1px solid #dadde1}
+.am-top b{font-size:14px}.am-top span{font-size:11px;color:#65676b}
+.am-main{display:flex;min-height:260px}
+.am-tree{width:84px;flex:0 0 84px;background:#fff;border-right:1px solid #dadde1;padding:8px 4px}
+.am-tree div{font-size:10.5px;padding:7px 5px;border-radius:6px;color:#65676b;line-height:1.2}
+.am-tree div i{font-style:normal;margin-right:3px}
+.am-tree div.on{background:#e7f0ff;color:#0a55d6;font-weight:600}
+.am-body{flex:1;min-width:0;padding:8px}
+.am-card{background:#fff;border-radius:8px;padding:10px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.am-ct{font-weight:700;font-size:13.5px;margin-bottom:8px}
+.am-small{font-size:11.5px;color:#65676b;margin:4px 0 6px}
+.am-field{margin:6px 0}.am-field label{display:block;font-size:11.5px;font-weight:600;margin-bottom:3px}
+.am-in{border:1px solid #ccd0d5;border-radius:6px;padding:7px 9px;background:#fff;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.am-in.ph{color:#8a8d91}.am-sel{display:flex;justify-content:space-between}.am-sel span{color:#65676b}
+.am-radio{display:flex;gap:8px;align-items:flex-start;padding:7px 4px}
+.am-radio>i{width:15px;height:15px;flex:0 0 15px;border:2px solid #8a8d91;border-radius:50%;margin-top:1px;box-sizing:border-box}
+.am-radio.on>i{border:5px solid #0866ff}
+.am-radio small{display:block;color:#65676b;font-size:11px}
+.am-chk{display:flex;gap:8px;align-items:center;padding:6px 4px}.am-chk i{width:15px;height:15px;border:2px solid #8a8d91;border-radius:3px;box-sizing:border-box}.am-chk.on i{background:#0866ff;border-color:#0866ff}
+.am-tog{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0}.am-tog small{display:block;color:#65676b;font-size:11px}
+.am-tog>i{width:34px;height:20px;flex:0 0 34px;border-radius:10px;background:#ccd0d5;position:relative}.am-tog>i:after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px}
+.am-tog>i.on{background:#0866ff}.am-tog>i.on:after{left:16px}
+.am-btn{display:inline-block;padding:6px 11px;border-radius:6px;background:#e4e6eb;color:#1c2b33;font-weight:600;font-size:12.5px;margin:3px 4px 3px 0}
+.am-btn.green{background:#42b72a;color:#fff}.am-btn.blue{background:#0866ff;color:#fff}.am-btn.ghost{background:#fff;border:1px solid #ccd0d5}
+.am-tabs{display:flex;gap:12px;font-size:12px;border-bottom:1px solid #dadde1;margin:0 0 8px;padding:0 2px}.am-tabs span{padding:6px 0;color:#65676b}.am-tabs .on{color:#0866ff;border-bottom:2px solid #0866ff;font-weight:600}
+.am-toolbar{margin-bottom:8px}
+.am-table{background:#fff;border-radius:8px;font-size:11.5px}.am-tr{display:grid;grid-template-columns:1.4fr 1fr 1fr;padding:8px;border-top:1px solid #eee}.am-tr.h{font-weight:600;border:none}
+.am-link{color:#0866ff;font-size:12px;margin-top:6px}
+.am-foot{display:flex;justify-content:flex-end;gap:4px;background:#fff;border-top:1px solid #dadde1;padding:7px 8px}
+.am-dim{background:rgba(0,0,0,.45);padding:22px 10px;min-height:280px}
+.am-modal{background:#fff;border-radius:10px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.am-mh{font-weight:700;font-size:15px;margin-bottom:2px}.am-mf{display:flex;justify-content:flex-end;gap:4px;margin-top:8px;border-top:1px solid #eee;padding-top:8px}
+.am-hit{position:relative;display:block;border-radius:8px;outline:3px solid #ff5a1f;outline-offset:2px;box-shadow:0 0 0 7px rgba(255,90,31,.25);animation:amPulse 1.4s infinite;margin:6px 0}
+span.am-hit{display:block}.am-toolbar .am-hit,.am-foot .am-hit,.am-mf .am-hit{display:inline-block;margin:0}
+.am-hand{position:absolute;right:-4px;bottom:-14px;font-style:normal;font-size:22px;animation:amTap 1.4s infinite}
+@keyframes amPulse{0%,100%{box-shadow:0 0 0 4px rgba(255,90,31,.35)}50%{box-shadow:0 0 0 10px rgba(255,90,31,.08)}}
+@keyframes amTap{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
@@ -489,7 +530,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "6.6";
+const VERSION = "6.7";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -1012,7 +1053,8 @@ CÓMO FUNCIONA HOY EL ALGORITMO DE META (Andromeda + GEM, actualizado a noviembr
 - Renovación: la fatiga llega en 2 a 3 semanas. Agregar anuncios reinicia el aprendizaje, así que se agregan 1 o 2 conceptos nuevos JUNTOS cada 1 a 2 semanas (o cuando la frecuencia pase de 2.5–3 o el costo por resultado suba 30%), nunca uno por día. Apaga solo los que llevan gasto suficiente sin resultados; deja que Meta reparta el gasto sin forzarlo parejo.
 - Presupuesto: cambios máximos de 20% cada 3 a 4 días. Optimiza al evento más cercano a la venta que el presupuesto pueda alimentar (con poco presupuesto, conversaciones de WhatsApp o vistas de página en lugar de compras).
 - Incluye en estrategia.reglas estas reglas con cifras de su presupuesto, y en estrategia.estructura "1 campaña · 1 conjunto amplio · N conceptos distintos".
-- WhatsApp o citas: campaña "Interacción", ubicación de la conversión "Apps de mensajes" → WhatsApp, meta "Maximizar el número de conversaciones". Registros a evento: recomienda WhatsApp; formulario instantáneo solo como alternativa.
+- WhatsApp (vender producto, servicio, reto, oportunidad, citas o registros a evento) — PRIORIDAD VENTAS: campaña "Ventas" → configuración "Campaña de ventas manual" → ubicación de la conversión "Apps de mensajes" → WhatsApp. Objetivo de rendimiento: "Maximizar el número de compras a través de mensajes" si le aparece (aparece cuando su cuenta comparte con Meta qué conversaciones terminaron en compra, por ejemplo desde su plataforma de WhatsApp); si no le aparece, "Maximizar el número de conversaciones". Explica en por_que que Ventas le pide a Meta gente con más probabilidad de comprar, no solo de escribir, y por eso trae mejores prospectos.
+- OPCIÓN SECUNDARIA (llena estrategia.alternativa): "Interacción" → Apps de mensajes → WhatsApp → "Maximizar el número de conversaciones": más mensajes y más baratos pero de menor calidad; úsala para eventos gratuitos o cuando busque volumen, o si Ventas no le deja elegir WhatsApp. Para registros con filtro, "Clientes potenciales" con formulario también es alternativa.
 - LANDING PAGE (objetivo "Llevar a mi landing page"): con píxel → campaña "Clientes potenciales" con conversión en "Sitio web" (o "Ventas" si la landing vende); sin píxel o "No sé" → campaña "Tráfico" a "vistas de la página de destino". Copies, CTA y pasos_meta dirigidos al link; si también quiere agente, el agente atiende dudas por WhatsApp.
 - FORMULARIO DE META (objetivo "Registros con formulario de Meta"): campaña "Clientes potenciales" con "Formularios instantáneos"; incluye en pasos_meta qué preguntas poner en el formulario y el mensaje de agradecimiento.
 - TIENDA EN LÍNEA (objetivo "Vender en mi tienda en línea"): respeta que quiere vender en su tienda, NO lo mandes a WhatsApp.
@@ -1049,7 +1091,7 @@ CREATIVOS Y COPIES:
 
 NO INVENTES DATOS: en los copies, si falta un dato indispensable escribe [COMPLETA: lo que falta]; pero en texto_en_imagen y prompt_imagen NUNCA pongas datos faltantes, pendientes, etiquetas internas ("Producto:", "Ángulo", "pendiente", "por definir"), nombres de ángulos ni instrucciones: solo copy para el cliente final. Si un dato no está confirmado, no aparece en la imagen. Si te adjuntan documentos o imágenes, úsalos como fuente principal de información.
 
-META PASO A PASO (pasos_meta): entre 8 y 12 pasos. Cada paso: "pantalla" (una de: inicio, objetivo, campana, presupuesto, conversion, publico, ubicaciones, anuncio, texto, whatsapp, publicar), "titulo" corto, "tocar" (el botón u opción exacta que se toca, como aparece en Meta en español), "valor" (lo que se escribe o elige; "" si no aplica) y "detalle" (1 o 2 frases simples).
+META PASO A PASO (pasos_meta): entre 8 y 12 pasos. Cada paso: "pantalla" (una de: inicio, objetivo, configuracion, campana, presupuesto, conversion, publico, ubicaciones, anuncio, texto, whatsapp, publicar — en ese orden del Administrador de anuncios en el navegador), "titulo" corto, "tocar" (el botón u opción exacta que se toca, como aparece en Meta en español), "valor" (lo que se escribe o elige; "" si no aplica) y "detalle" (1 o 2 frases simples).
 
 AGENTE DE WHATSAPP: un vendedor experto (o un asistente servicial si el objetivo es atender o agendar). Seguro, cálido, persuasivo; conoce a fondo el producto o servicio; usa con confianza los beneficios que el usuario afirma; maneja objeciones; insiste con respeto; siempre lleva a la acción (compra, cita o registro) y da seguimiento. No lo hagas restrictivo ni evasivo. Única regla de cuidado: si el cliente menciona un diagnóstico o que toma medicamento, presenta el producto como apoyo o complemento y que siga con su médico, sin dejar de vender.
 Usa los datos del agente que dio el usuario (nombre, horario, cómo cierra, cuándo pasar con humano, instrucciones extra). 2 prompts:
@@ -1060,7 +1102,7 @@ Devuelve SOLO un JSON válido con esta forma exacta:
 {
  "en_sencillo": ["4 frases muy simples: qué vas a hacer, cuánto vas a invertir y cuánto tiempo, qué resultado esperar, qué hacer después de publicar"],
  "resumen": "2 líneas",
- "estrategia": {"objetivo_meta":"", "por_que":"", "estructura":"", "presupuesto":"", "duracion":"", "publico":"", "ubicaciones":"", "reglas":["…"], "metricas":["…"]},
+ "estrategia": {"objetivo_meta":"", "por_que":"", "alternativa":"objetivo secundario y cuándo usarlo, 1 o 2 líneas", "estructura":"", "presupuesto":"", "duracion":"", "publico":"", "ubicaciones":"", "reglas":["…"], "metricas":["…"]},
  "por_que_cantidad": "",
  "anuncios": [{"angulo":"", "formato":"", "etapa":"", "por_que_funciona":"", "texto_principal":"", "titulo":"", "descripcion":"", "cta":"", "texto_en_imagen":"", "prompt_imagen":"", "advertencia":"", "version_segura": null}],
  "pasos_meta": [{"pantalla":"", "titulo":"", "tocar":"", "valor":"", "detalle":""}],
@@ -1428,6 +1470,7 @@ function renderPlan(){
     <div class="costpill" id="campCost"></div>
     <div class="card hero"><div class="eyebrow">En sencillo</div><h2 style="font-size:22px;margin:8px 0 2px">${esc(e.objetivo_meta||"")}</h2>
       <ul class="simple">${simple.map((s,i)=>`<li><i>${i+1}</i><span>${esc(s)}</span></li>`).join("")}</ul></div>
+    ${e.alternativa?`<div class="card" style="padding:12px 16px"><div class="kv" style="margin:0"><div class="k">Opción secundaria</div><div class="v">${esc(e.alternativa)}</div></div></div>`:""}
     ${(p.advertencias||[]).length?`<div class="card warn"><div class="kv"><div class="k" style="color:#ffcf6b">Antes de publicar</div><ul class="clean">${p.advertencias.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div></div>`:""}
     <details class="card"><summary>Ver detalle de la estrategia</summary><div style="margin-top:14px">
       ${[["Por qué este objetivo",e.por_que],["Estructura",e.estructura],["Presupuesto",e.presupuesto],["Duración",e.duracion],["Público",e.publico],["Ubicaciones",e.ubicaciones]].filter(x=>x[1]).map(([k,v])=>`<div class="kv"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join("")}
@@ -1762,6 +1805,81 @@ async function applyText(){
 
 /* ---- Meta: recorrido ---- */
 const PANT = {inicio:"Inicio · Administrador de anuncios", objetivo:"Elige un objetivo", campana:"Campaña", presupuesto:"Presupuesto y calendario", conversion:"Conversión", publico:"Público", ubicaciones:"Ubicaciones", anuncio:"Anuncio", texto:"Contenido del anuncio", whatsapp:"Plantilla de mensaje", publicar:"Revisar y publicar"};
+/* ---- Pantallas que imitan el Administrador de anuncios (navegador) ---- */
+const nrm = t => String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9$ ]/g," ").replace(/\s+/g," ").trim();
+function amScreen(s, c){
+  const tocar=s.tocar||"", val=s.valor||"", p=c.plan||{}, a=c.answers||{}, b=a.presupuesto||{};
+  const T=nrm(tocar); let hitDone=false; const seen=[]; let chosen=null;
+  const isHit = label => { const L=nrm(label); if(chosen===null){ seen.push(L); return false; } if(hitDone||!L||L!==chosen) return false; hitDone=true; return true; };
+  const hit = (label, html) => isHit(label) ? `<span class="am-hit">${html}<i class="am-hand">👆</i></span>` : html;
+  const btn = (label, cls="") => hit(label, `<span class="am-btn ${cls}">${esc(label)}</span>`);
+  const radio = (label, on, sub="") => hit(label, `<div class="am-radio ${on?"on":""}"><i></i><div><b>${esc(label)}</b>${sub?`<small>${esc(sub)}</small>`:""}</div></div>`);
+  const input = (label, value, ph="") => hit(label, `<div class="am-field"><label>${esc(label)}</label><div class="am-in ${value?"":"ph"}">${esc(value||ph)}</div></div>`);
+  const select = (label, value) => hit(label, `<div class="am-field"><label>${esc(label)}</label><div class="am-in am-sel">${esc(value)}<span>▾</span></div></div>`);
+  const toggle = (label, on, sub="") => hit(label, `<div class="am-tog"><div><b>${esc(label)}</b>${sub?`<small>${esc(sub)}</small>`:""}</div><i class="${on?"on":""}"></i></div>`);
+  const sec = (title, inner) => `<div class="am-card"><div class="am-ct">${esc(title)}</div>${inner}</div>`;
+  const build = () => {
+  const objName = /interacci/i.test(tocar+val)? "Interacción" : /clientes potenciales/i.test(tocar+val)? "Clientes potenciales" : /tr[aá]fico/i.test(tocar+val)? "Tráfico" : ((p.estrategia||{}).objetivo_meta||"Ventas").split(/[ →·(]/)[0] || "Ventas";
+  const level = ({campana:0, objetivo:0, configuracion:0, presupuesto:1, conversion:1, publico:1, ubicaciones:1, whatsapp:2, anuncio:2, texto:2, publicar:2})[s.pantalla];
+  const money = `$${b.diario||150}.00`;
+  const ad0 = (c.ads||[])[0]||{};
+  let body="", modal="";
+  switch(s.pantalla){
+    case "inicio":
+      body = `<div class="am-tabs"><span class="on">Campañas</span><span>Conjuntos de anuncios</span><span>Anuncios</span></div>
+        <div class="am-toolbar">${btn("+ Crear","green")}<span class="am-btn ghost">Duplicar</span><span class="am-btn ghost">Editar</span></div>
+        <div class="am-table"><div class="am-tr h"><span>Campaña</span><span>Entrega</span><span>Resultados</span></div><div class="am-tr"><span>—</span><span>—</span><span>—</span></div></div>`; break;
+    case "objetivo":
+      modal = `<div class="am-modal"><div class="am-mh">Crear nueva campaña</div><div class="am-small">Elige un objetivo de campaña</div>
+        ${["Reconocimiento","Tráfico","Interacción","Clientes potenciales","Promoción de la app","Ventas"].map(o=>radio(o, o===objName)).join("")}
+        <div class="am-mf"><span class="am-btn ghost">Cancelar</span>${btn("Continuar","blue")}</div></div>`; break;
+    case "configuracion":
+      modal = `<div class="am-modal"><div class="am-mh">Configuración de la campaña</div>
+        ${radio("Campaña de ventas Advantage+", false, "Automatiza público, ubicaciones y presupuesto")}${radio("Campaña de ventas manual", true, "Tú eliges cada configuración")}
+        <div class="am-mf"><span class="am-btn ghost">Atrás</span>${btn("Continuar","blue")}</div></div>`; break;
+    case "campana":
+      body = sec("Nombre de la campaña", input("Nombre de la campaña", /nombre/i.test(tocar)?val:"", "Campaña nueva"))
+        + sec("Detalles de la campaña", select("Tipo de compra","Subasta")+select("Objetivo de la campaña", objName))
+        + sec("Presupuesto", toggle("Presupuesto de la campaña Advantage+", false, "Lo pones en el conjunto de anuncios"))
+        + sec("Categorías especiales de anuncios", select("Categorías","Ninguna")); break;
+    case "presupuesto":
+      body = sec("Presupuesto y calendario", select("Presupuesto", "Presupuesto diario") + input("Presupuesto diario", /presupuesto|\$/i.test(tocar+val)? (val||money) : money) + input("Fecha de inicio", "Hoy") + toggle("Fecha de finalización", !!b.dias, b.dias?`${b.dias} días`:"")); break;
+    case "conversion":
+      body = sec("Conversión", `<div class="am-small">Ubicación de la conversión</div>${["Sitio web","App","Apps de mensajes","Llamadas"].map(o=>radio(o, /mensaje/i.test(o)? !/sitio|web/i.test(tocar+val) : /sitio|web/i.test(tocar+val)&&o==="Sitio web")).join("")}
+        ${select("Objetivo de rendimiento", /compras/i.test(tocar+val)?"Maximizar el número de compras a través de mensajes":/vistas/i.test(tocar+val)?"Maximizar el número de vistas de la página de destino":"Maximizar el número de conversaciones")}
+        ${select("Página de Facebook", ((a.marca||{}).compania)||"Tu página")}`); break;
+    case "whatsapp":
+      body = level===2 && !/app|messenger|instagram/i.test(tocar)
+        ? sec("Configuración del mensaje", radio("Plantilla de mensaje", true) + input("Mensaje prellenado", p.mensaje_prellenado||val, "Hola, quiero información") + btn("Editar plantilla"))
+        : sec("Apps de mensajes", ["Messenger","Instagram","WhatsApp"].map(o=>hit(o,`<div class="am-chk ${o==="WhatsApp"?"on":""}"><i></i>${o}</div>`)).join("") + input("Número de WhatsApp", ((a.marca||{}).whatsapp)||"", "+52 …")); break;
+    case "publico":
+      body = sec("Público", toggle("Sugerencia de público Advantage+", true, "Meta busca a quién mostrarle tus anuncios") + input("Ubicaciones", a.ubicacion||val||"México") + input("Edad mínima", "18") + `<div class="am-link">Mostrar más opciones</div>`); break;
+    case "ubicaciones":
+      body = sec("Ubicaciones", radio("Ubicaciones Advantage+", true, "Recomendado") + radio("Ubicaciones manuales", false)); break;
+    case "anuncio":
+      body = sec("Nombre del anuncio", input("Nombre del anuncio", "", "Anuncio 1")) + sec("Identidad", select("Página de Facebook","Tu página")+select("Cuenta de Instagram","Tu cuenta"))
+        + sec("Configuración del anuncio", radio("Crear anuncio", true) + `<div class="am-small">Formato</div>` + radio("Imagen o video únicos", true) + radio("Secuencia", false))
+        + sec("Contenido del anuncio", btn("Configurar contenido") + btn("Agregar contenido multimedia")); break;
+    case "texto":
+      body = sec("Contenido del anuncio", input("Texto principal", ad0.texto_principal? String(ad0.texto_principal).slice(0,70)+"…" : val) + input("Título", ad0.titulo||"") + input("Descripción", ad0.descripcion||"") + select("Llamada a la acción", ad0.cta||"Enviar mensaje")); break;
+    case "publicar":
+      body = sec("Revisión", `<div class="am-small">Revisa que todo esté bien antes de publicar.</div>`); break;
+    default:
+      body = sec(PANT[s.pantalla]||s.titulo||"Paso", "");
+  }
+  const tree = level==null? "" : `<div class="am-tree">${["Campaña","Conjunto de anuncios","Anuncio"].map((n,k)=>`<div class="${k===level?"on":""}"><i>${["▣","▤","▢"][k]}</i>${n}</div>`).join("")}</div>`;
+  const foot = level==null? "" : `<div class="am-foot"><span class="am-btn ghost">Cerrar</span><span class="am-btn ghost">Atrás</span>${s.pantalla==="publicar"? hit("Publicar",`<span class="am-btn blue">Publicar</span>`) : hit("Siguiente",`<span class="am-btn blue">Siguiente</span>`)}</div>`;
+  // si no se encontró dónde tocar, se agrega resaltado
+  const extra = (!hitDone && tocar) ? `<div class="am-card"><span class="am-hit"><span class="am-btn">${esc(tocar)}</span><i class="am-hand">👆</i></span>${val?`<div class="am-small" style="margin-top:8px">Escribe o elige: <b>${esc(val)}</b></div>`:""}</div>` : "";
+  return {modal,body,extra,tree,foot};
+  };
+  build();
+  const score = L => !L||!T ? 0 : L===T ? 1000 : (L.length>3 && T.includes(L)) ? 100+L.length : (L.length>3 && L.includes(T)) ? 50-L.length/100 : 0;
+  let best=0; for(const L of seen){ const sc=score(L); if(sc>best){ best=sc; chosen=L; } } if(chosen===null) chosen="\u0000";
+  hitDone=false; const {modal,body,extra,tree,foot}=build();
+  return `<div class="am"><div class="am-url">🔒 adsmanager.facebook.com</div><div class="am-top"><b>Administrador de anuncios</b><span>Cuenta publicitaria ▾</span></div>
+    ${modal? `<div class="am-dim">${modal}</div>` : `<div class="am-main">${tree}<div class="am-body">${body}${extra}</div></div>${foot}`}${modal&&extra?extra:""}</div>`;
+}
 function renderMeta(){
   const c=state.c, p=c.plan, steps=p.pasos_meta||[];
   const mode=c.metaMode||"tour";
@@ -1769,14 +1887,10 @@ function renderMeta(){
   if(mode==="tour" && steps.length){
     const k=Math.min(c.tour||0, steps.length-1), s=steps[k];
     h+=`<div class="tourCount">Paso ${k+1} de ${steps.length}</div>
-      <div class="mock"><div class="bar"><i></i><i></i><i></i><span>Meta · Administrador de anuncios</span></div>
-        <div class="scr"><h4>${esc(PANT[s.pantalla]||s.titulo)}</h4><div class="sk m"></div><div class="sk s"></div>
-          <div class="hit"><small>Toca</small>${esc(s.tocar||s.titulo)}<span class="hand">👆</span></div>
-          ${s.valor?`<div class="hit" style="animation:none;border-style:dashed"><small>Escribe o elige</small>${esc(s.valor)}</div>`:""}
-          <div class="sk"></div><div class="sk s"></div></div></div>
+      ${amScreen(s,c)}
       <div class="card"><b>${esc(s.titulo)}</b><div style="color:#d6d6d6;margin-top:4px;white-space:pre-wrap">${esc(s.detalle||"")}</div>${s.valor?field("Valor",s.valor):""}</div>
       <div class="tourNav"><button class="back" id="tPrev" ${k===0?"disabled":""}>←</button><button class="btn" id="tNext">${k===steps.length-1?"Terminé ✓":"Siguiente paso"}</button></div>
-      <p class="note">Simulación aproximada: Meta cambia su diseño seguido, pero los nombres de las opciones se mantienen.</p>`;
+      <p class="note">Así se ve en el Administrador de anuncios desde el navegador. Lo naranja es donde tocas. Meta mueve cosas de lugar a veces, pero los nombres se mantienen.</p>`;
   } else {
     h+=`<div class="card"><ol class="steps">${steps.map(s=>`<li><b>${esc(s.titulo)}</b><div>${esc((s.tocar?"Toca: "+s.tocar+". ":"")+(s.detalle||""))}</div>${s.valor?field("Valor",s.valor):""}</li>`).join("")}</ol></div>`;
   }
