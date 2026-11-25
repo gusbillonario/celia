@@ -489,7 +489,7 @@ ol.how{padding-left:20px;color:#d6d6d6;margin:6px 0 0}ol.how li{margin:6px 0}
    App de una sola página. Cada usuario usa su propia API key
    de OpenAI (se guarda solo en su navegador).
    ========================================================= */
-const VERSION = "6.3";
+const VERSION = "6.5";
 const GOOGLE_CLIENT_ID = "";   // ← ID de cliente OAuth de Google (para Drive). Vacío = Drive desactivado.
 const API = "https://api.openai.com/v1";
 const LS = { key:"cl_key", models:"cl_models", quality:"cl_quality", answers:"cl_answers", prices:"cl_prices", ledger:"cl_ledger", drive:"cl_drive", driveRoot:"cl_drive_root" };
@@ -539,6 +539,10 @@ function saveCampaign(now){ if(!state.c) return; clearTimeout(saveT); const obj=
 const urlCache = new WeakMap();
 const urlFor = b => { if(!b) return ""; if(!urlCache.has(b)) urlCache.set(b, URL.createObjectURL(b)); return urlCache.get(b); };
 const dataURLtoBlob = async u => (await fetch(u)).blob();
+/* Imagen de OpenAI → Blob con bytes reales (más estable en iPhone que fetch(data:)) */
+function b64ToBlob(b64){ const bin=atob(b64); const u=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u[k]=bin.charCodeAt(k);
+  const type = u[0]===0xFF&&u[1]===0xD8 ? "image/jpeg" : (u[0]===0x52&&u[8]===0x57) ? "image/webp" : "image/png"; return new Blob([u],{type}); }
+async function blobOk(b){ try{ const im=await new Promise((res,rej)=>{ const i=new Image(); const u=URL.createObjectURL(b); i.onload=()=>{ URL.revokeObjectURL(u); res(i); }; i.onerror=()=>{ URL.revokeObjectURL(u); rej(); }; i.src=u; }); return im.width>0; }catch(e){ return false; } }
 
 /* ---------------- Fondo: destellos ---------------- */
 (function sky(){
@@ -604,6 +608,7 @@ async function oa(path, body, {form=false, method="POST"}={}){
 function friendly(e){
   const m=(e&&e.message)||String(e);
   if(e.status===401) return "Tu API key no es válida o fue eliminada. Revísala en Ajustes.";
+  if(isRate(e)) return "OpenAI pidió esperar un momento por exceso de solicitudes. Toca Reintentar en unos segundos.";
   if(e.status===429 || /quota|billing|insufficient/i.test(m)) return "Tu cuenta de OpenAI no tiene saldo o llegó a su límite. Agrega saldo en Billing.";
   if(/verif/i.test(m)) return "OpenAI pide verificar tu organización para generar imágenes: Settings → Organization → Verify. Después vuelve a intentar.";
   if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return location.protocol!=="https:" ? "Estás abriendo el archivo como vista previa y ahí la conexión está bloqueada. Abre la app desde su link (https://…)." : "No hay conexión con OpenAI. Revisa tu internet e intenta de nuevo.";
@@ -653,7 +658,20 @@ async function transcribe(blob, secs){
   const fd=new FormData(); fd.append("file",blob,"voz."+ext); fd.append("model",state.models.stt||"whisper-1"); fd.append("language","es");
   const j=await oa("/audio/transcriptions",fd,{form:true}); track("voz",(secs/60)*P().stt); return j.text||"";
 }
+const isRate = e => e && e.status===429 && !/quota|billing|insufficient/i.test(e.message||"");
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
 async function genImage(prompt, inputs){   // inputs: Blob[]
+  if(prompt.length>30000) prompt=prompt.slice(0,30000);
+  let bad=0;
+  for(let t=0;;t++){
+    try{ const b=await genImage1(prompt, inputs); if(await blobOk(b)) return b; if(++bad>=2) throw new Error("La imagen llegó dañada. Toca Reintentar."); console.warn("imagen dañada, reintento"); continue; }
+    catch(e){
+      if(isRate(e) && t<5){ const m=/(\d+(?:\.\d+)?)\s*s/.exec(e.message||""); await sleep(Math.min(60,(m?+m[1]:12)+2+t*6)*1000); continue; }
+      if(e.status===400 && inputs.length>1 && t<1 && !/safety|moderation|rejected|policy/i.test(e.message||"")){ console.warn("reintento con menos imágenes:",e.message); inputs=inputs.slice(0,1); continue; }
+      throw e; }
+  }
+}
+async function genImage1(prompt, inputs){
   const run = async (q)=>{
     if(inputs.length){ const fd=new FormData(); fd.append("model",state.models.image); fd.append("prompt",prompt); fd.append("size","1024x1536"); if(q){ fd.append("quality",state.quality); fd.append("input_fidelity","high"); }
       for(const [k,b] of inputs.entries()) fd.append("image[]", await dataURLtoBlob(await shrink(b,1536,"image/png")), "img"+k+".png");
@@ -663,7 +681,7 @@ async function genImage(prompt, inputs){   // inputs: Blob[]
   let j; try{ j=await run(true); }catch(e){ if(e.status===400 && /fidelity|quality|size|unknown|unrecognized|parameter/i.test(e.message)) j=await run(false); else throw e; }
   const d=j.data&&j.data[0]; if(!d) throw new Error("La IA no devolvió imagen.");
   track("imagenes", costImage(j.usage), 1);
-  return d.b64_json ? dataURLtoBlob("data:image/png;base64,"+d.b64_json) : (await fetch(d.url)).blob();
+  return d.b64_json ? b64ToBlob(d.b64_json) : (await fetch(d.url)).blob();
 }
 const DESIGN_RULES = `ERES UN DISEÑADOR PUBLICITARIO SENIOR, ACTUAL, que diseña anuncios de alto rendimiento para Facebook e Instagram en 2026. Aplica sentido común y lo que hoy funciona:
 - Prueba del primer segundo: en un vistazo se entiende QUÉ es y POR QUÉ importa. Un solo mensaje por anuncio y un solo punto focal.
@@ -1321,7 +1339,9 @@ async function makeImage(i, instruction){
   }catch(e){ pending.delete(c.id+":"+i); if(box) box.innerHTML=`<div class="st">${esc(friendly(e))}<br><br><button class="btn line sm" data-retry="${i}">Reintentar</button></div>`; const b=document.querySelector(`[data-retry="${i}"]`); if(b) b.onclick=()=>makeImage(i, instruction); if(ad.img) setTimeout(()=>{ if(state.c===c) paintImage(i); },2500); }
 }
 function paintImage(i){ const box=$("#img"+i), ad=state.c.ads[i]; if(!box) return; if(ad.img){ box.innerHTML=`<img alt="Creativo ${i+1}" src="${urlFor(ad.img)}">`; setDl(i,true);
+  const im=box.querySelector("img"); im.onerror=async()=>{ im.onerror=null; try{ const u=await blobToDataURL(ad.img); if(!/^data:image\//.test(u)||u.length<200) throw 0; im.onerror=()=>imgBroken(i); im.src=u; }catch(e){ imgBroken(i); } };
   const row=box.parentElement.querySelector(".row"); if(row){ let u=row.querySelector("[data-undo]"); if((ad.history||[]).length&&!u){ u=document.createElement("button"); u.className="btn line sm"; u.dataset.undo=i; u.textContent="↩ Deshacer"; u.onclick=()=>undoImage(i); row.appendChild(u); } else if(!(ad.history||[]).length&&u) u.remove(); } } }
+function imgBroken(i){ const box=$("#img"+i); if(!box) return; setDl(i,false); box.innerHTML=`<div class="st">Esta imagen no se pudo mostrar.<br><br><button class="btn line sm" data-fix="${i}">Crearla de nuevo</button></div>`; box.querySelector("[data-fix]").onclick=()=>{ state.c.ads[i].img=null; makeImage(i); }; }
 function setDl(i,on){ $$(`[data-need-img="${i}"]`).forEach(b=>b.disabled=!on); }
 async function generateAllImages(){
   if(state.c && state.c.mode==="chat"){ try{ await prepCutouts(state.c); }catch(e){} }
@@ -1330,7 +1350,7 @@ async function generateAllImages(){
   const worker=async()=>{ while(k<todo.length){ const i=todo[k++]; await makeImage(i); } };
   GEN.imgs=true; keepAwake(true);
   try{ await loadInspiration(c); await loadFavs(c); }catch(e){}
-  await Promise.all([worker(),worker(),worker()]);
+  await Promise.all([worker(),worker()]);
   GEN.imgs=false; if(!GEN.active) keepAwake(false);
   if(GEN.hidden){ GEN.hidden=false; if(!document.hidden) setTimeout(resumeIfNeeded,800); }
   if(c.ads.some(a=>a.img)){ $("#dlHint")&&$("#dlHint").classList.remove("hidden"); if(store.get(LS.drive)&&GOOGLE_CLIENT_ID) driveSave(true); }
@@ -1703,7 +1723,7 @@ async function genEdit(prompt, inputs, mask){
   let j; try{ j=await run(true); }catch(e){ if(e.status===400 && /fidelity|quality|size|unknown|unrecognized|parameter/i.test(e.message)) j=await run(false); else throw e; }
   const d=j.data&&j.data[0]; if(!d) throw new Error("La IA no devolvió imagen.");
   track("imagenes", costImage(j.usage), 1);
-  return d.b64_json ? dataURLtoBlob("data:image/png;base64,"+d.b64_json) : (await fetch(d.url)).blob();
+  return d.b64_json ? b64ToBlob(d.b64_json) : (await fetch(d.url)).blob();
 }
 async function applyText(){
   const c=state.c, i=ST.i, ad=c.ads[i], T=ST.txt; if(!T.text.trim()){ toast("Escribe el texto"); return; }
